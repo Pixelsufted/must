@@ -40,6 +40,8 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
         self.lib = sdl2_mixer_lib
         if not self.lib:
             raise FileNotFoundError('Failed to load SDL2_mixer library')
+        self.Mix_Linked_Version = self.wrap('Mix_Linked_Version', res=ctypes.POINTER(ctypes.c_uint8 * 3))
+        self.ver = tuple(self.Mix_Linked_Version().contents[0:3])
         self.Mix_Init = self.wrap('Mix_Init', args=(ctypes.c_int, ), res=ctypes.c_int)
         self.Mix_Quit = self.wrap('Mix_Quit')
         self.Mix_OpenAudioDevice = self.wrap('Mix_OpenAudioDevice', args=(
