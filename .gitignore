@@ -1,0 +1,15 @@
+.idea
+.vs
+.vscode
+venv
+__pycache__
+config.json
+*.pyc
+*.pyd
+*.pyx
+*.tar
+*.rar
+*.xz
+*.zip
+*.dll
+*.bak
