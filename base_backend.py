@@ -29,3 +29,6 @@ class BaseBackend:
 
     def destroy(self) -> None:
         pass
+
+    def get_audio_drivers(self) -> list:
+        pass
