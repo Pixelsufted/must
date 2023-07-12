@@ -9,12 +9,16 @@ class SDL2Wrapper(base_backend.BaseWrapper):
         self.lib = sdl2_lib
         if not self.lib:
             raise FileNotFoundError('Failed to load SDL2 library')
+        self.SDL_AUDIO_S16LSB = 0x8010
+        self.SDL_AUDIO_S16MSB = 0x9010
         self.SDL_AUDIO_F32LSB = 0x8120
         self.SDL_AUDIO_F32MSB = 0x9120
         if is_le:
             self.SDL_AUDIO_F32SYS = self.SDL_AUDIO_F32LSB
+            self.SDL_AUDIO_S16SYS = self.SDL_AUDIO_S16LSB
         else:
             self.SDL_AUDIO_F32SYS = self.SDL_AUDIO_F32MSB
+            self.SDL_AUDIO_S16SYS = self.SDL_AUDIO_S16MSB
         self.SDL_AUDIO_ALLOW_FREQUENCY_CHANGE = 0x00000001
         self.SDL_AUDIO_ALLOW_FORMAT_CHANGE = 0x00000002
         self.SDL_AUDIO_ALLOW_CHANNELS_CHANGE = 0x00000004
@@ -40,6 +44,15 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
         self.lib = sdl2_mixer_lib
         if not self.lib:
             raise FileNotFoundError('Failed to load SDL2_mixer library')
+        self.MIX_INIT_FLAC = 0x00000001
+        self.MIX_INIT_MOD = 0x00000002
+        self.MIX_INIT_MP3 = 0x00000008
+        self.MIX_INIT_OGG = 0x00000010
+        self.MIX_INIT_MID = 0x00000020
+        self.MIX_INIT_OPUS = 0x00000040
+        self.MIX_INIT_WAV_PACK = 0x00000080
+        self.MIX_DEFAULT_FREQUENCY = 44100
+        self.MIX_DEFAULT_CHANNELS = 2
         self.Mix_Linked_Version = self.wrap('Mix_Linked_Version', res=ctypes.POINTER(ctypes.c_uint8 * 3))
         self.ver = tuple(self.Mix_Linked_Version().contents[0:3])
         self.Mix_Init = self.wrap('Mix_Init', args=(ctypes.c_int, ), res=ctypes.c_int)
@@ -48,6 +61,10 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
             ctypes.c_int, ctypes.c_uint16, ctypes.c_int, ctypes.c_int, ctypes.c_char_p, ctypes.c_int
         ), res=ctypes.c_int)
         self.Mix_CloseAudio = self.wrap('Mix_CloseAudio')
+        self.Mix_QuerySpec = self.wrap('Mix_QuerySpec', args=(
+            ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_uint16), ctypes.POINTER(ctypes.c_int)
+        ))
+        self.Mix_AllocateChannels = self.wrap('Mix_AllocateChannels', args=(ctypes.c_int, ), res=ctypes.c_int)
 
 
 class SDL2Backend(base_backend.BaseBackend):
@@ -60,7 +77,8 @@ class SDL2Backend(base_backend.BaseBackend):
     def init(self) -> None:
         if self.sdl.SDL_AudioInit(self.app.stb(self.app.config['audio_driver']) or None) < 0:
             raise RuntimeError(f'Failed to init SDL2 audio ({self.app.bts(self.sdl.SDL_GetError())})')
-        mix_flags = 0
+        # TODO: configurable
+        mix_flags = self.mix.MIX_INIT_MP3 | self.mix.MIX_INIT_OGG | self.mix.MIX_INIT_FLAC
         mix_init_flags = self.mix.Mix_Init(mix_flags)
         if not self.mix.Mix_Init(mix_flags) and mix_flags:
             raise RuntimeError(f'Failed to init SDL2_mixer ({self.app.bts(self.sdl.SDL_GetError())})')
@@ -75,6 +93,7 @@ class SDL2Backend(base_backend.BaseBackend):
             self.sdl.SDL_AUDIO_ALLOW_ANY_CHANGE
         ) < 0:
             raise RuntimeError(f'Failed to open audio device ({self.app.bts(self.sdl.SDL_GetError())})')
+        self.mix.Mix_AllocateChannels(0)
 
     def quit(self) -> None:
         self.mix.Mix_CloseAudio()
