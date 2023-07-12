@@ -55,10 +55,15 @@ class App:
             while self.mus.is_playing():
                 pass
             self.mus.destroy()
+        self.running = True
+        self.loop()
         self.cleanup()
         self.bk.quit()
         self.bk.destroy()
         self.exit_code = 0
+
+    def loop(self) -> None:
+        pass
 
     def play_new_music(self, mus: base_backend.BaseMusic) -> None:
         if self.current_music:
