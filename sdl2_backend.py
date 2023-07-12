@@ -53,6 +53,22 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
         self.MIX_INIT_WAV_PACK = 0x00000080
         self.MIX_DEFAULT_FREQUENCY = 44100
         self.MIX_DEFAULT_CHANNELS = 2
+        self.MIX_NO_FADING = 0
+        self.MIX_FADING_OUT = 1
+        self.MIX_FADING_IN = 2
+        self.MUS_NONE = 0
+        self.MUS_CMD = 1
+        self.MUS_WAV = 2
+        self.MUS_MOD = 3
+        self.MUS_MID = 4
+        self.MUS_OGG = 5
+        self.MUS_MP3 = 6
+        self.MUS_MP3_MAD_UNUSED = 7
+        self.MUS_FLAC = 8
+        self.MUS_MOD_PLUG_UNUSED = 9
+        self.MUS_OPUS = 10
+        self.MUS_WAV_PACK = 11
+        self.MUS_GME = 12
         self.Mix_Linked_Version = self.wrap('Mix_Linked_Version', res=ctypes.POINTER(ctypes.c_uint8 * 3))
         self.ver = tuple(self.Mix_Linked_Version().contents[0:3])
         self.Mix_Init = self.wrap('Mix_Init', args=(ctypes.c_int, ), res=ctypes.c_int)

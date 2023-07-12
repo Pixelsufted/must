@@ -10,7 +10,7 @@ class BaseWrapper:
         try:
             result = getattr(self.lib, func_name)
         except AttributeError:
-            logger.warn('Failed to import function', func_name)
+            log.warn('Failed to import function', func_name)
             return None
         result.argtypes = args
         result.restype = res
