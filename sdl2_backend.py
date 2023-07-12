@@ -89,8 +89,8 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
         }
         self.Mix_Linked_Version = self.wrap('Mix_Linked_Version', res=ctypes.POINTER(ctypes.c_uint8 * 3))
         self.ver = tuple(self.Mix_Linked_Version().contents[0:3])
-        if self.ver[0] < 2 or (self.ver[1] <= 0 and self.ver[2] < 2):
-            raise RuntimeError(f'At least SDL2_mixer 2.0.2 is requires, found {self.ver}')
+        if self.ver[0] < 2 or self.ver[1] < 6:
+            raise RuntimeError(f'At least SDL2_mixer 2.6.0 is requires, found {self.ver}')
         self.Mix_Init = self.wrap('Mix_Init', args=(ctypes.c_int, ), res=ctypes.c_int)
         self.Mix_Quit = self.wrap('Mix_Quit')
         self.Mix_OpenAudioDevice = self.wrap('Mix_OpenAudioDevice', args=(
@@ -104,6 +104,18 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
         self.Mix_LoadMUS = self.wrap('Mix_LoadMUS', args=(ctypes.c_char_p, ), res=ctypes.c_void_p)
         self.Mix_FreeMusic = self.wrap('Mix_FreeMusic', args=(ctypes.c_void_p, ))
         self.Mix_GetMusicType = self.wrap('Mix_GetMusicType', args=(ctypes.c_void_p, ), res=ctypes.c_int)
+        self.Mix_PlayMusic = self.wrap('Mix_PlayMusic', args=(ctypes.c_void_p, ctypes.c_int), res=ctypes.c_int)
+        self.Mix_FadeInMusic = self.wrap('Mix_FadeInMusic', args=(
+            ctypes.c_void_p, ctypes.c_int, ctypes.c_int
+        ), res=ctypes.c_int)
+        self.Mix_FadeInMusicPos = self.wrap('Mix_FadeInMusicPos', args=(
+            ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_double
+        ), res=ctypes.c_int)
+        self.Mix_SetMusicPosition = self.wrap('Mix_SetMusicPosition', args=(ctypes.c_double, ), res=ctypes.c_int)
+        # These two require at least 2.6.0. What we can do?
+        self.Mix_SetMusicPosition = self.wrap('Mix_GetMusicPosition', args=(ctypes.c_void_p, ), res=ctypes.c_double)
+        self.Mix_MusicDuration = self.wrap('Mix_MusicDuration', args=(ctypes.c_void_p, ), res=ctypes.c_double)
+        self.Mix_PlayingMusic = self.wrap('Mix_PlayingMusic', res=ctypes.c_int)
 
 
 class SDL2Music(base_backend.BaseMusic):
