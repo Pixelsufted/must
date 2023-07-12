@@ -111,19 +111,33 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
         self.Mix_FadeInMusicPos = self.wrap('Mix_FadeInMusicPos', args=(
             ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_double
         ), res=ctypes.c_int)
+        self.Mix_FadeOutMusic = self.wrap('Mix_FadeOutMusic', args=(ctypes.c_int, ), res=ctypes.c_int)
         self.Mix_SetMusicPosition = self.wrap('Mix_SetMusicPosition', args=(ctypes.c_double, ), res=ctypes.c_int)
         # These two require at least 2.6.0. What we can do?
         self.Mix_SetMusicPosition = self.wrap('Mix_GetMusicPosition', args=(ctypes.c_void_p, ), res=ctypes.c_double)
         self.Mix_MusicDuration = self.wrap('Mix_MusicDuration', args=(ctypes.c_void_p, ), res=ctypes.c_double)
         self.Mix_PlayingMusic = self.wrap('Mix_PlayingMusic', res=ctypes.c_int)
+        self.Mix_PausedMusic = self.wrap('Mix_PausedMusic', res=ctypes.c_int)
+        self.Mix_FadingMusic = self.wrap('Mix_FadingMusic', res=ctypes.c_int)
+        self.Mix_HaltMusic = self.wrap('Mix_HaltMusic', res=ctypes.c_int)
+        self.Mix_PauseMusic = self.wrap('Mix_PauseMusic')
+        self.Mix_ResumeMusic = self.wrap('Mix_ResumeMusic')
+        self.Mix_RewindMusic = self.wrap('Mix_RewindMusic')
 
 
 class SDL2Music(base_backend.BaseMusic):
-    def __init__(self, mix: SDL2MixWrapper, mus: ctypes.c_void_p) -> None:
+    def __init__(self, app: any, sdl: SDL2Wrapper, mix: SDL2MixWrapper, mus: ctypes.c_void_p) -> None:
         super().__init__()
+        self.app = app
+        self.sdl = sdl
         self.mix = mix
         self.mus = mus
         self.type = self.mix.type_map.get(self.mix.Mix_GetMusicType(self.mus)) or 'none'
+
+    def play(self) -> None:
+        result = self.mix.Mix_PlayMusic(self.mus)
+        if result < 0:
+            log.warn(f'Failed to play music ({self.app.bts(self.sdl.SDL_GetError())})')
 
     def destroy(self) -> None:
         if not self.mix:
@@ -132,6 +146,8 @@ class SDL2Music(base_backend.BaseMusic):
             self.mix.Mix_FreeMusic(self.mus)
             self.mus = None
         self.mix = None
+        self.sdl = None
+        self.app = None
 
 
 class SDL2Backend(base_backend.BaseBackend):
@@ -167,7 +183,7 @@ class SDL2Backend(base_backend.BaseBackend):
         mus = self.mix.Mix_LoadMUS(self.app.stb(fp))
         if not mus:
             raise RuntimeError(f'Failed to open music ({self.app.bts(self.sdl.SDL_GetError())})')
-        return SDL2Music(self.mix, mus)
+        return SDL2Music(self.app, self.sdl, self.mix, mus)
 
     def quit(self) -> None:
         self.mix.Mix_CloseAudio()
