@@ -4,5 +4,6 @@
   "channels": 2,
   "chunk_size": 2048,
   "device_name": "",
+  "formats": ["wav", "mp3", "m4a", "ogg", "flac"],
   "music_path": "e:/music"
 }

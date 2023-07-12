@@ -128,8 +128,8 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
 
 
 class SDL2Music(base_backend.BaseMusic):
-    def __init__(self, app: any, sdl: SDL2Wrapper, mix: SDL2MixWrapper, mus: ctypes.c_void_p) -> None:
-        super().__init__()
+    def __init__(self, app: any, sdl: SDL2Wrapper, mix: SDL2MixWrapper, fp: str, mus: ctypes.c_void_p) -> None:
+        super().__init__(fp)
         self.app = app
         self.sdl = sdl
         self.mix = mix
@@ -168,8 +168,19 @@ class SDL2Backend(base_backend.BaseBackend):
     def init(self) -> None:
         if self.sdl.SDL_AudioInit(self.app.stb(self.app.config['audio_driver']) or None) < 0:
             raise RuntimeError(f'Failed to init SDL2 audio ({self.app.bts(self.sdl.SDL_GetError())})')
-        # TODO: configurable
-        mix_flags = self.mix.MIX_INIT_MP3 | self.mix.MIX_INIT_OGG | self.mix.MIX_INIT_FLAC
+        mix_flags = 0
+        if 'mp3' in self.app.config['formats']:
+            mix_flags |= self.mix.MIX_INIT_MP3
+        if 'ogg' in self.app.config['formats']:
+            mix_flags |= self.mix.MIX_INIT_OGG
+        if 'opus' in self.app.config['formats']:
+            mix_flags |= self.mix.MIX_INIT_OPUS
+        if 'mid' in self.app.config['formats']:
+            mix_flags |= self.mix.MIX_INIT_MID
+        if 'mod' in self.app.config['formats']:
+            mix_flags |= self.mix.MIX_INIT_MOD
+        if 'flac' in self.app.config['formats']:
+            mix_flags |= self.mix.MIX_INIT_FLAC
         mix_init_flags = self.mix.Mix_Init(mix_flags)
         if not self.mix.Mix_Init(mix_flags) and mix_flags:
             raise RuntimeError(f'Failed to init SDL2_mixer ({self.app.bts(self.sdl.SDL_GetError())})')
@@ -185,13 +196,12 @@ class SDL2Backend(base_backend.BaseBackend):
         ) < 0:
             raise RuntimeError(f'Failed to open audio device ({self.app.bts(self.sdl.SDL_GetError())})')
         self.mix.Mix_AllocateChannels(0)
-        self.open_music(r'E:\Music\Mittsies - Vitality (V3 Remix).mp3')
 
     def open_music(self, fp: str) -> SDL2Music:
         mus = self.mix.Mix_LoadMUS(self.app.stb(fp))
         if not mus:
             raise RuntimeError(f'Failed to open music ({self.app.bts(self.sdl.SDL_GetError())})')
-        return SDL2Music(self.app, self.sdl, self.mix, mus)
+        return SDL2Music(self.app, self.sdl, self.mix, fp, mus)
 
     def quit(self) -> None:
         self.mix.Mix_CloseAudio()

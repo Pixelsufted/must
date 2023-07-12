@@ -28,10 +28,22 @@ class App:
         self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
         self.bk = sdl2_backend.SDL2Backend(self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix))
         self.bk.init()
+        self.full_list = []
+        for arg in self.argv[1:]:
+            ext = arg.split('.')[-1].lower()
+            if ext not in self.config['formats']:
+                continue
+            self.full_list.append(arg)
+        if not self.full_list and self.config['music_path']:
+            for fn in os.listdir(self.config['music_path']):
+                ext = fn.split('.')[-1].lower()
+                if ext not in self.config['formats']:
+                    continue
+                self.full_list.append(os.path.join(self.config['music_path'], fn))
         self.mus = self.bk.open_music(r'E:\Music\Mittsies - Vitality (V3 Remix).mp3')
         self.mus.play()
         self.mus.set_volume(0.1)
-        while self.mus.is_playing():
+        while self.mus.is_playing() and False:
             pass
         self.mus.destroy()
         self.bk.quit()

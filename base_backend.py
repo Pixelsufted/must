@@ -1,3 +1,4 @@
+import os
 import ctypes
 import log
 
@@ -18,7 +19,9 @@ class BaseWrapper:
 
 
 class BaseMusic:
-    def __init__(self) -> None:
+    def __init__(self, fp: str) -> None:
+        self.fp = fp
+        self.fn = os.path.basename(fp)
         self.type = 'none'
 
 
