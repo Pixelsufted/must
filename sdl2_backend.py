@@ -9,6 +9,7 @@ class SDL2Wrapper(base_backend.BaseWrapper):
         self.lib = sdl2_lib
         if not self.lib:
             raise FileNotFoundError('Failed to load SDL2 library')
+        self.SDL_MIX_MAX_VOLUME = 128
         self.SDL_AUDIO_S16LSB = 0x8010
         self.SDL_AUDIO_S16MSB = 0x9010
         self.SDL_AUDIO_F32LSB = 0x8120
@@ -120,6 +121,7 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
         self.Mix_PausedMusic = self.wrap('Mix_PausedMusic', res=ctypes.c_int)
         self.Mix_FadingMusic = self.wrap('Mix_FadingMusic', res=ctypes.c_int)
         self.Mix_HaltMusic = self.wrap('Mix_HaltMusic', res=ctypes.c_int)
+        self.Mix_VolumeMusic = self.wrap('Mix_VolumeMusic', args=(ctypes.c_void_p, ), res=ctypes.c_int)
         self.Mix_PauseMusic = self.wrap('Mix_PauseMusic')
         self.Mix_ResumeMusic = self.wrap('Mix_ResumeMusic')
         self.Mix_RewindMusic = self.wrap('Mix_RewindMusic')
@@ -135,9 +137,15 @@ class SDL2Music(base_backend.BaseMusic):
         self.type = self.mix.type_map.get(self.mix.Mix_GetMusicType(self.mus)) or 'none'
 
     def play(self) -> None:
-        result = self.mix.Mix_PlayMusic(self.mus)
+        result = self.mix.Mix_PlayMusic(self.mus, 0)
         if result < 0:
             log.warn(f'Failed to play music ({self.app.bts(self.sdl.SDL_GetError())})')
+
+    def is_playing(self) -> None:
+        return self.mix.Mix_PlayingMusic()
+
+    def set_volume(self, volume: float = 1.0) -> None:
+        self.mix.Mix_VolumeMusic(int(volume * self.sdl.SDL_MIX_MAX_VOLUME))
 
     def destroy(self) -> None:
         if not self.mix:

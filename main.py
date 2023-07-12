@@ -29,7 +29,10 @@ class App:
         self.bk = sdl2_backend.SDL2Backend(self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix))
         self.bk.init()
         self.mus = self.bk.open_music(r'E:\Music\Mittsies - Vitality (V3 Remix).mp3')
-        print(self.mus.type)
+        self.mus.play()
+        self.mus.set_volume(0.1)
+        while self.mus.is_playing():
+            pass
         self.mus.destroy()
         self.bk.quit()
         self.bk.destroy()
