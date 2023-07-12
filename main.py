@@ -40,12 +40,14 @@ class App:
                 if ext not in self.config['formats']:
                     continue
                 self.full_list.append(os.path.join(self.config['music_path'], fn))
-        self.mus = self.bk.open_music(r'E:\Music\Mittsies - Vitality (V3 Remix).mp3')
+        '''
+        self.mus = self.bk.open_music('E:\\Music\\Mittsies - Vitality (V3 Remix).mp3')
         self.mus.play()
         self.mus.set_volume(0.1)
         while self.mus.is_playing() and False:
             pass
         self.mus.destroy()
+        '''
         self.bk.quit()
         self.bk.destroy()
         self.exit_code = 0
