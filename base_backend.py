@@ -17,11 +17,19 @@ class BaseWrapper:
         return result
 
 
+class BaseMusic:
+    def __init__(self) -> None:
+        self.type = 'none'
+
+
 class BaseBackend:
     def __init__(self) -> None:
         pass
 
     def init(self) -> None:
+        pass
+
+    def open_music(self, fp: str) -> BaseMusic:
         pass
 
     def quit(self) -> None:

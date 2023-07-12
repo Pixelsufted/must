@@ -72,8 +72,25 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
         self.MUS_OPUS = 10
         self.MUS_WAV_PACK = 11
         self.MUS_GME = 12
+        self.type_map = {
+            self.MUS_NONE: 'none',
+            self.MUS_CMD: 'cmd',
+            self.MUS_WAV: 'wav',
+            self.MUS_MOD: 'mod',
+            self.MUS_MID: 'mid',
+            self.MUS_OGG: 'ogg',
+            self.MUS_MP3: 'mp3',
+            self.MUS_MP3_MAD_UNUSED: 'mp3',
+            self.MUS_FLAC: 'flac',
+            self.MUS_MOD_PLUG_UNUSED: 'mod',
+            self.MUS_OPUS: 'opus',
+            self.MUS_WAV_PACK: 'wav_pack',
+            self.MUS_GME: 'gme'
+        }
         self.Mix_Linked_Version = self.wrap('Mix_Linked_Version', res=ctypes.POINTER(ctypes.c_uint8 * 3))
         self.ver = tuple(self.Mix_Linked_Version().contents[0:3])
+        if self.ver[0] < 2 or (self.ver[1] <= 0 and self.ver[2] < 2):
+            raise RuntimeError(f'At least SDL2_mixer 2.0.2 is requires, found {self.ver}')
         self.Mix_Init = self.wrap('Mix_Init', args=(ctypes.c_int, ), res=ctypes.c_int)
         self.Mix_Quit = self.wrap('Mix_Quit')
         self.Mix_OpenAudioDevice = self.wrap('Mix_OpenAudioDevice', args=(
@@ -84,6 +101,25 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
             ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_uint16), ctypes.POINTER(ctypes.c_int)
         ))
         self.Mix_AllocateChannels = self.wrap('Mix_AllocateChannels', args=(ctypes.c_int, ), res=ctypes.c_int)
+        self.Mix_LoadMUS = self.wrap('Mix_LoadMUS', args=(ctypes.c_char_p, ), res=ctypes.c_void_p)
+        self.Mix_FreeMusic = self.wrap('Mix_FreeMusic', args=(ctypes.c_void_p, ))
+        self.Mix_GetMusicType = self.wrap('Mix_GetMusicType', args=(ctypes.c_void_p, ), res=ctypes.c_int)
+
+
+class SDL2Music(base_backend.BaseMusic):
+    def __init__(self, mix: SDL2MixWrapper, mus: ctypes.c_void_p) -> None:
+        super().__init__()
+        self.mix = mix
+        self.mus = mus
+        self.type = self.mix.type_map.get(self.mix.Mix_GetMusicType(self.mus)) or 'none'
+
+    def destroy(self) -> None:
+        if not self.mix:
+            return
+        if self.mus:
+            self.mix.Mix_FreeMusic(self.mus)
+            self.mus = None
+        self.mix = None
 
 
 class SDL2Backend(base_backend.BaseBackend):
@@ -113,6 +149,13 @@ class SDL2Backend(base_backend.BaseBackend):
         ) < 0:
             raise RuntimeError(f'Failed to open audio device ({self.app.bts(self.sdl.SDL_GetError())})')
         self.mix.Mix_AllocateChannels(0)
+        self.open_music(r'E:\Music\Mittsies - Vitality (V3 Remix).mp3')
+
+    def open_music(self, fp: str) -> SDL2Music:
+        mus = self.mix.Mix_LoadMUS(self.app.stb(fp))
+        if not mus:
+            raise RuntimeError(f'Failed to open music ({self.app.bts(self.sdl.SDL_GetError())})')
+        return SDL2Music(self.mix, mus)
 
     def quit(self) -> None:
         self.mix.Mix_CloseAudio()

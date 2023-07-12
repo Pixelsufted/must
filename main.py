@@ -28,6 +28,9 @@ class App:
         self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
         self.bk = sdl2_backend.SDL2Backend(self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix))
         self.bk.init()
+        self.mus = self.bk.open_music(r'E:\Music\Mittsies - Vitality (V3 Remix).mp3')
+        print(self.mus.type)
+        self.mus.destroy()
         self.bk.quit()
         self.bk.destroy()
         self.exit_code = 0
