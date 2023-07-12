@@ -72,6 +72,7 @@ class App:
         if self.current_music:
             self.current_music.stop()
             self.current_music.destroy()
+            self.current_music = None
 
     def read_json(self, fp: str) -> dict:
         f = open(fp, 'r', encoding=self.encoding)
