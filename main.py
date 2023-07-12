@@ -2,6 +2,8 @@ import json
 import os
 import sys
 import ctypes
+import time
+import base_backend
 import sdl2_backend
 
 
@@ -26,8 +28,13 @@ class App:
             )
         self.config = self.read_json(self.config_path)
         self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
-        self.bk = sdl2_backend.SDL2Backend(self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix))
+        self.bk: base_backend.BaseBackend = sdl2_backend.SDL2Backend(
+            self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix)
+        )
         self.bk.init()
+        self.volume = self.config['volume']
+        if self.volume > 1.0:
+            raise RuntimeError(f'Volume {self.volume} is bigger than 1.0')
         self.full_list = []
         for arg in self.argv[1:]:
             ext = arg.split('.')[-1].lower()
@@ -40,17 +47,31 @@ class App:
                 if ext not in self.config['formats']:
                     continue
                 self.full_list.append(os.path.join(self.config['music_path'], fn))
-        '''
-        self.mus = self.bk.open_music('E:\\Music\\Mittsies - Vitality (V3 Remix).mp3')
-        self.mus.play()
-        self.mus.set_volume(0.1)
-        while self.mus.is_playing() and False:
-            pass
-        self.mus.destroy()
-        '''
+        self.current_music: base_backend.BaseMusic = None # noqa
+        if os.getenv('TEST_MUSIC'):
+            self.mus = self.bk.open_music('E:\\Music\\Mittsies - Vitality (V3 Remix).mp3')
+            self.mus.play()
+            self.mus.set_volume(self.volume)
+            while self.mus.is_playing():
+                pass
+            self.mus.destroy()
+        self.cleanup()
         self.bk.quit()
         self.bk.destroy()
         self.exit_code = 0
+
+    def play_new_music(self, mus: base_backend.BaseMusic) -> None:
+        if self.current_music:
+            self.current_music.stop()
+            self.current_music.destroy()
+        mus.play()
+        mus.set_volume(self.volume)
+        self.current_music = mus
+
+    def cleanup(self) -> None:
+        if self.current_music:
+            self.current_music.stop()
+            self.current_music.destroy()
 
     def read_json(self, fp: str) -> dict:
         f = open(fp, 'r', encoding=self.encoding)

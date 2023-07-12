@@ -24,6 +24,24 @@ class BaseMusic:
         self.fn = os.path.basename(fp)
         self.type = 'none'
 
+    def play(self) -> None:
+        pass
+
+    def stop(self) -> None:
+        pass
+
+    def set_paused(self, paused: bool) -> None:
+        pass
+
+    def is_playing(self) -> None:
+        pass
+
+    def set_volume(self, volume: float = 1.0) -> None:
+        pass
+
+    def destroy(self) -> None:
+        pass
+
 
 class BaseBackend:
     def __init__(self) -> None:

@@ -37,6 +37,8 @@ class SDL2Wrapper(base_backend.BaseWrapper):
         self.SDL_AudioQuit = self.wrap('SDL_AudioQuit')
         self.SDL_GetError = self.wrap('SDL_GetError', res=ctypes.c_char_p)
         self.SDL_GetRevision = self.wrap('SDL_GetRevision', res=ctypes.c_char_p)
+        # TODO: check version (at least 2.0.18) for this one
+        self.SDL_GetTicks64 = self.wrap('SDL_GetTicks64', res=ctypes.c_uint64)
         self.SDL_GetNumAudioDrivers = self.wrap('SDL_GetNumAudioDrivers', res=ctypes.c_int)
         self.SDL_GetAudioDriver = self.wrap('SDL_GetAudioDriver', args=(ctypes.c_int, ), res=ctypes.c_char_p)
         self.SDL_GetCurrentAudioDriver = self.wrap('SDL_GetCurrentAudioDriver', res=ctypes.c_char_p)
@@ -141,8 +143,19 @@ class SDL2Music(base_backend.BaseMusic):
         if result < 0:
             log.warn(f'Failed to play music ({self.app.bts(self.sdl.SDL_GetError())})')
 
+    def stop(self) -> None:
+        self.mix.Mix_HaltMusic()
+
     def is_playing(self) -> None:
         return self.mix.Mix_PlayingMusic()
+
+    def set_paused(self, paused: bool) -> None:
+        (self.mix.Mix_PauseMusic if paused else self.mix.Mix_ResumeMusic)()
+
+    def rewind(self) -> None:
+        if not self.is_playing():
+            return
+        self.mix.Mix_RewindMusic()
 
     def set_volume(self, volume: float = 1.0) -> None:
         self.mix.Mix_VolumeMusic(int(volume * self.sdl.SDL_MIX_MAX_VOLUME))
