@@ -38,6 +38,7 @@ class SDL2Wrapper(base_backend.BaseWrapper):
         self.SDL_GetRevision = self.wrap('SDL_GetRevision', res=ctypes.c_char_p)
         self.SDL_GetNumAudioDrivers = self.wrap('SDL_GetNumAudioDrivers', res=ctypes.c_int)
         self.SDL_GetAudioDriver = self.wrap('SDL_GetAudioDriver', args=(ctypes.c_int, ), res=ctypes.c_char_p)
+        self.SDL_GetCurrentAudioDriver = self.wrap('SDL_GetCurrentAudioDriver', res=ctypes.c_char_p)
 
 
 class SDL2MixWrapper(base_backend.BaseWrapper):
@@ -126,3 +127,9 @@ class SDL2Backend(base_backend.BaseBackend):
         for i in range(self.sdl.SDL_GetNumAudioDrivers()):
             result.append(self.app.bts(self.sdl.SDL_GetAudioDriver(i)))
         return result
+
+    def get_current_audio_driver(self) -> str:
+        char_name = self.sdl.SDL_GetCurrentAudioDriver()
+        if char_name:
+            return self.app.bts(char_name)
+        return ''

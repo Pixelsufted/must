@@ -32,3 +32,6 @@ class BaseBackend:
 
     def get_audio_drivers(self) -> list:
         pass
+
+    def get_current_audio_driver(self) -> str:
+        pass
