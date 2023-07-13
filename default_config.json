@@ -6,5 +6,6 @@
   "device_name": "",
   "volume": 1.0,
   "formats": ["wav", "mp3", "m4a", "ogg", "flac"],
-  "music_path": "e:/music"
+  "music_path": "e:/music",
+  "main_playlist_mode": "full_random"
 }
