@@ -59,7 +59,7 @@ class App:
                     continue
                 self.full_list.append(os.path.join(self.config['music_path'], fn))
         self.current_music: base_backend.BaseMusic = None # noqa
-        if os.getenv('TEST_MUSIC') or True:
+        if os.getenv('TEST_MUSIC'):
             self.mus = self.bk.open_music('E:\\Music\\Mittsies - Vitality (V3 Remix).mp3')
             self.mus.play()
             self.mus.set_volume(self.volume)
