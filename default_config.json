@@ -1,5 +1,6 @@
 {
   "audio_backend": "sdl2",
+  "fmod_version": "0x00020214",
   "audio_driver": "",
   "freq": 96000,
   "channels": 2,

@@ -222,6 +222,8 @@ class SDL2Backend(base_backend.BaseBackend):
         self.sdl.SDL_AudioQuit()
 
     def destroy(self) -> None:
+        self.mix = None
+        self.sdl = None
         self.app = None
 
     def get_audio_drivers(self) -> list:
