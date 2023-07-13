@@ -1,8 +1,8 @@
-import json
 import os
 import sys
+import json
+import random
 import ctypes
-import time
 import base_backend
 import sdl2_backend
 
@@ -56,14 +56,39 @@ class App:
                 pass
             self.mus.destroy()
         self.running = True
-        self.loop()
+        self.default_track_id = -1
+        self.main_loop()
         self.cleanup()
         self.bk.quit()
         self.bk.destroy()
         self.exit_code = 0
 
-    def loop(self) -> None:
-        pass
+    def track_loop(self) -> None:
+        while self.running and self.current_music and self.current_music.is_playing():
+            pass
+
+    def next_track(self) -> None:
+        # TODO: maybe allow to change mode in real time?
+        if self.config['main_playlist_mode'] == 'default':
+            self.default_track_id += 1
+            if self.default_track_id >= len(self.full_list):
+                self.default_track_id = 0
+            fp = self.full_list[self.default_track_id]
+            try:
+                self.play_new_music(self.bk.open_music(fp))
+            except RuntimeError:
+                return
+        elif self.config['main_playlist_mode'] == 'full_random':
+            fp = random.choice(self.full_list)
+            try:
+                self.play_new_music(self.bk.open_music(fp))
+            except RuntimeError:
+                return
+
+    def main_loop(self) -> None:
+        while self.running:
+            self.next_track()
+            self.track_loop()
 
     def play_new_music(self, mus: base_backend.BaseMusic) -> None:
         if self.current_music:
