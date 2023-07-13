@@ -321,8 +321,8 @@ class FmodExBackend(base_backend.BaseBackend):
                     break
         self.check_result_err(res, 'Failed to create system')
         ver_buf = ctypes.c_uint()
-        self.fmod.FMOD_System_GetVersion(self.sys, ver_buf)
-        if not ver_buf.value == self.header_version:
+        if self.fmod.FMOD_System_GetVersion(self.sys, ver_buf) == self.fmod.FMOD_OK\
+                and not ver_buf.value == self.header_version:
             log.warn(f'Incorrect FmodEx version configured. Please change it in config to {hex(ver_buf.value)}')
         self.check_result_err(self.fmod.FMOD_System_Init(
             self.sys, 1, self.fmod.FMOD_INIT_THREAD_UNSAFE, None

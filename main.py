@@ -3,6 +3,7 @@ import sys
 import json
 import random
 import ctypes
+import log
 import base_backend
 import sdl2_backend
 import fmodex_backend
@@ -104,9 +105,10 @@ class App:
 
     def main_loop(self) -> None:
         while self.running:
-            mus = self.next_track()
+            mus: base_backend.BaseMusic = self.next_track()
             while not mus:
                 mus = self.next_track()
+            log.info(mus.fn)
             self.play_new_music(mus)
             self.track_loop()
 
