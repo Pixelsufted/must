@@ -231,26 +231,33 @@ class FmodExWrapper(base_backend.BaseWrapper):
             ctypes.c_void_p, ctypes.c_char_p, ctypes.c_uint, ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)
         ))
         self.FMOD_Sound_Release = self.wrap('FMOD_Sound_Release', args=(ctypes.c_void_p, ))
+        self.FMOD_System_PlaySound = self.wrap('FMOD_System_PlaySound', args=(
+            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_void_p)
+        ))
+        self.FMOD_System_Update = self.wrap('FMOD_System_Update', args=(ctypes.c_void_p, ))
 
     def wrap(self, func_name: str, args: tuple = (), res: any = ctypes.c_int) -> any:
         return super().wrap(func_name=func_name, args=args, res=res)
 
 
 class FmodExMusic(base_backend.BaseMusic):
-    def __init__(self, app: any, fmod: FmodExWrapper, fp: str, mus: ctypes.c_void_p) -> None:
+    def __init__(self, bk: any, fmod: FmodExWrapper, fp: str, mus: ctypes.c_void_p) -> None:
         super().__init__(fp)
-        self.app = app
+        self.bk = bk
         self.fmod = fmod
         self.mus = mus
+        self.ch = ctypes.c_void_p()
 
     def play(self) -> None:
-        pass
+        self.bk.check_result_warn(self.fmod.FMOD_System_PlaySound(
+            self.bk.sys, self.mus, None, 0, self.ch
+        ), 'Failed to play music')
 
     def stop(self) -> None:
         pass
 
     def is_playing(self) -> bool:
-        return False
+        return True
 
     def set_paused(self, paused: bool) -> None:
         pass
@@ -264,8 +271,13 @@ class FmodExMusic(base_backend.BaseMusic):
     def destroy(self) -> None:
         if not self.fmod:
             return
+        if self.mus:
+            result = self.fmod.FMOD_Sound_Release(self.mus)
+            if self.bk.check_result_warn:
+                self.bk.check_result_warn(result, 'Failed to close music')
+            self.mus = None
+        self.bk = None
         self.fmod = None
-        self.app = None
 
 
 class FmodExBackend(base_backend.BaseBackend):
@@ -291,7 +303,7 @@ class FmodExBackend(base_backend.BaseBackend):
             None,
             mus
         ), 'Failed to open music')
-        return FmodExMusic(self.app, self.fmod, fp, mus)
+        return FmodExMusic(self, self.fmod, fp, mus)
 
     def quit(self) -> None:
         self.check_result_warn(self.fmod.FMOD_System_Close(self.sys), 'Failed to close system')
@@ -313,7 +325,10 @@ class FmodExBackend(base_backend.BaseBackend):
         raise RuntimeError(f'{error_msg} ({(self.fmod.error_map.get(result) or "Unknown error.")[:-1]})')
 
     def get_audio_drivers(self) -> list:
-        pass
+        return []
 
     def get_current_audio_driver(self) -> str:
-        pass
+        return ''
+
+    def update(self) -> None:
+        self.check_result_warn(self.fmod.FMOD_System_Update(self.sys), 'Failed to update system')

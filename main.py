@@ -64,7 +64,7 @@ class App:
             self.mus.play()
             self.mus.set_volume(self.volume)
             while self.mus.is_playing():
-                pass
+                self.bk.update()
             self.mus.destroy()
             self.cleanup()
             self.bk.quit()
