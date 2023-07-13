@@ -298,6 +298,7 @@ class FmodExBackend(base_backend.BaseBackend):
         self.header_version = eval(app.config['fmod_version'])
         self.sys = ctypes.c_void_p()
         self.fmod = FmodExWrapper(libs.get('fmod'))
+        self.type = 'none'  # TODO
 
     def init(self) -> None:
         self.check_result_err(self.fmod.FMOD_System_Create(self.sys, self.header_version), 'Failed to create system')
