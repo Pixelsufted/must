@@ -189,14 +189,15 @@ class FmodExWrapper(base_backend.BaseWrapper):
         self.FMOD_INIT_THREAD_UNSAFE = 0x00100000
         self.FMOD_INIT_PROFILE_METER_ALL = 0x00200000
         self.FMOD_INIT_MEMORY_TRACKING = 0x00400000
-        self.FMOD_System_Create = self.wrap(
-            'FMOD_System_Create', args=(ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint), res=ctypes.c_int
-        )
-        self.FMOD_System_Release = self.wrap('FMOD_System_Release', args=(ctypes.c_void_p, ), res=ctypes.c_int)
+        self.FMOD_System_Create = self.wrap('FMOD_System_Create', args=(ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint))
+        self.FMOD_System_Release = self.wrap('FMOD_System_Release', args=(ctypes.c_void_p, ))
         self.FMOD_System_Init = self.wrap('FMOD_System_Init', args=(
             ctypes.c_void_p, ctypes.c_int, ctypes.c_uint, ctypes.c_void_p
-        ), res=ctypes.c_int)
-        self.FMOD_System_Close = self.wrap('FMOD_System_Close', args=(ctypes.c_void_p, ), res=ctypes.c_int)
+        ))
+        self.FMOD_System_Close = self.wrap('FMOD_System_Close', args=(ctypes.c_void_p, ))
+    
+    def wrap(self, func_name: str, args: tuple = (), res: any = ctypes.c_int) -> any:
+        return super().wrap(func_name=func_name, args=args, res=res)
 
 
 class FmodExMusic(base_backend.BaseMusic):
