@@ -1,4 +1,5 @@
 {
+  "audio_backend": "sdl2",
   "audio_driver": "",
   "freq": 96000,
   "channels": 2,

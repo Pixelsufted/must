@@ -5,6 +5,7 @@ import random
 import ctypes
 import base_backend
 import sdl2_backend
+import fmodex_backend
 
 
 class App:
@@ -27,10 +28,20 @@ class App:
                 os.path.join(self.cwd, 'config.json'), self.read_json(os.path.join(self.cwd, 'default_config.json'))
             )
         self.config = self.read_json(self.config_path)
-        self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
-        self.bk: base_backend.BaseBackend = sdl2_backend.SDL2Backend(
-            self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix)
-        )
+        if self.config['audio_backend'] == 'sdl2':
+            self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
+            self.bk: base_backend.BaseBackend = sdl2_backend.SDL2Backend(
+                self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix)
+            )
+        elif self.config['audio_backend'] == 'fmodex':
+            if sys.platform == 'win32':
+                self.search_libs('VCRUNTIME140_APP')
+            self.search_libs('libfsbvorbis64')
+            self.bk: base_backend.BaseBackend = fmodex_backend.FmodExBackend(
+                self, self.search_libs('opus', 'media_foundation', 'fsbank', 'fmod', prefix=self.auto_prefix)
+            )
+        else:
+            raise RuntimeError('Unknown audio backend')
         self.bk.init()
         self.volume = self.config['volume']
         if self.volume > 1.0:
@@ -48,7 +59,7 @@ class App:
                     continue
                 self.full_list.append(os.path.join(self.config['music_path'], fn))
         self.current_music: base_backend.BaseMusic = None # noqa
-        if os.getenv('TEST_MUSIC'):
+        if os.getenv('TEST_MUSIC') or True:
             self.mus = self.bk.open_music('E:\\Music\\Mittsies - Vitality (V3 Remix).mp3')
             self.mus.play()
             self.mus.set_volume(self.volume)
