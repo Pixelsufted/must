@@ -9,6 +9,7 @@ class FmodExWrapper(base_backend.BaseWrapper):
         self.lib = fmod_lib
         if not self.lib:
             raise FileNotFoundError('Failed to load FmodEx library')
+        # - Errors -
         self.FMOD_OK = 0
         self.FMOD_ERR_BADCOMMAND = 1
         self.FMOD_ERR_CHANNEL_ALLOC = 2
@@ -175,6 +176,7 @@ class FmodExWrapper(base_backend.BaseWrapper):
             self.FMOD_ERR_RECORD_DISCONNECTED: "The specified recording driver has been disconnected.",
             self.FMOD_ERR_TOOMANYSAMPLES: "The length provided exceeds the allowable limit.",
         }
+        # - Init Flags -
         self.FMOD_INIT_NORMAL = 0x00000000
         self.FMOD_INIT_STREAM_FROM_UPDATE = 0x00000001
         self.FMOD_INIT_MIX_FROM_UPDATE = 0x00000002
@@ -189,13 +191,47 @@ class FmodExWrapper(base_backend.BaseWrapper):
         self.FMOD_INIT_THREAD_UNSAFE = 0x00100000
         self.FMOD_INIT_PROFILE_METER_ALL = 0x00200000
         self.FMOD_INIT_MEMORY_TRACKING = 0x00400000
+        # - Music Modes -
+        self.FMOD_DEFAULT = 0x00000000
+        self.FMOD_LOOP_OFF = 0x00000001
+        self.FMOD_LOOP_NORMAL = 0x00000002
+        self.FMOD_LOOP_BIDI = 0x00000004
+        self.FMOD_2D = 0x00000008
+        self.FMOD_3D = 0x00000010
+        self.FMOD_CREATE_STREAM = 0x00000080
+        self.FMOD_CREATE_SAMPLE = 0x00000100
+        self.FMOD_CREATE_COMPRESSED_SAMPLE = 0x00000200
+        self.FMOD_OPEN_USER = 0x00000400
+        self.FMOD_OPEN_MEMORY = 0x00000800
+        self.FMOD_OPEN_MEMORY_POINT = 0x10000000
+        self.FMOD_OPEN_RAW = 0x00001000
+        self.FMOD_OPEN_ONLY = 0x00002000
+        self.FMOD_ACCURATE_TIME = 0x00004000
+        self.FMOD_MPEG_SEARCH = 0x00008000
+        self.FMOD_NONBLOCKING = 0x00010000
+        self.FMOD_UNIQUE = 0x00020000
+        self.FMOD_3D_HEAD_RELATIVE = 0x00040000
+        self.FMOD_3D_WORLD_RELATIVE = 0x00080000
+        self.FMOD_3D_INVERSE_ROLL_OFF = 0x00100000
+        self.FMOD_3D_LINEAR_ROLL_OFF = 0x00200000
+        self.FMOD_3D_LINEAR_SQUARE_ROLL_OFF = 0x00400000
+        self.FMOD_3D_INVERSE_TAPERED_ROLL_OFF = 0x00800000
+        self.FMOD_3D_CUSTOM_ROLL_OFF = 0x04000000
+        self.FMOD_3D_IGNORE_GEOMETRY = 0x40000000
+        self.FMOD_IGNORE_TAGS = 0x02000000
+        self.FMOD_LOW_MEM = 0x08000000
+        self.FMOD_VIRTUAL_PLAY_FROM_START = 0x80000000
         self.FMOD_System_Create = self.wrap('FMOD_System_Create', args=(ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint))
         self.FMOD_System_Release = self.wrap('FMOD_System_Release', args=(ctypes.c_void_p, ))
         self.FMOD_System_Init = self.wrap('FMOD_System_Init', args=(
             ctypes.c_void_p, ctypes.c_int, ctypes.c_uint, ctypes.c_void_p
         ))
         self.FMOD_System_Close = self.wrap('FMOD_System_Close', args=(ctypes.c_void_p, ))
-    
+        self.FMOD_System_CreateStream = self.wrap('FMOD_System_CreateStream', args=(
+            ctypes.c_void_p, ctypes.c_char_p, ctypes.c_uint, ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)
+        ))
+        self.FMOD_Sound_Release = self.wrap('FMOD_Sound_Release', args=(ctypes.c_void_p, ))
+
     def wrap(self, func_name: str, args: tuple = (), res: any = ctypes.c_int) -> any:
         return super().wrap(func_name=func_name, args=args, res=res)
 
@@ -213,8 +249,8 @@ class FmodExMusic(base_backend.BaseMusic):
     def stop(self) -> None:
         pass
 
-    def is_playing(self) -> None:
-        pass
+    def is_playing(self) -> bool:
+        return False
 
     def set_paused(self, paused: bool) -> None:
         pass
@@ -247,11 +283,19 @@ class FmodExBackend(base_backend.BaseBackend):
         ), 'Failed to init system')
 
     def open_music(self, fp: str) -> FmodExMusic:
-        pass
+        mus = ctypes.c_void_p()
+        self.check_result_err(self.fmod.FMOD_System_CreateStream(
+            self.sys,
+            self.app.stb(fp),
+            self.fmod.FMOD_LOOP_OFF | self.fmod.FMOD_2D | self.fmod.FMOD_CREATE_STREAM | self.fmod.FMOD_LOW_MEM,
+            None,
+            mus
+        ), 'Failed to open music')
+        return FmodExMusic(self.app, self.fmod, fp, mus)
 
     def quit(self) -> None:
         self.check_result_warn(self.fmod.FMOD_System_Close(self.sys), 'Failed to close system')
-        self.check_result_warn(self.fmod.FMOD_System_Create(self.sys), 'Failed to release system')
+        self.check_result_warn(self.fmod.FMOD_System_Release(self.sys), 'Failed to release system')
 
     def destroy(self) -> None:
         self.sys = None

@@ -33,7 +33,7 @@ class BaseMusic:
     def set_paused(self, paused: bool) -> None:
         pass
 
-    def is_playing(self) -> None:
+    def is_playing(self) -> bool:
         pass
 
     def set_volume(self, volume: float = 1.0) -> None:

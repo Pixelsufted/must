@@ -66,6 +66,11 @@ class App:
             while self.mus.is_playing():
                 pass
             self.mus.destroy()
+            self.cleanup()
+            self.bk.quit()
+            self.bk.destroy()
+            self.exit_code = 0
+            return
         self.running = True
         self.default_track_id = -1
         self.main_loop()
@@ -76,7 +81,7 @@ class App:
 
     def track_loop(self) -> None:
         while self.running and self.current_music and self.current_music.is_playing():
-            pass
+            self.bk.update()
 
     def next_track(self) -> any:
         # TODO: maybe allow to change mode in real time?

@@ -146,7 +146,7 @@ class SDL2Music(base_backend.BaseMusic):
     def stop(self) -> None:
         self.mix.Mix_HaltMusic()
 
-    def is_playing(self) -> None:
+    def is_playing(self) -> bool:
         return self.mix.Mix_PlayingMusic()
 
     def set_paused(self, paused: bool) -> None:
