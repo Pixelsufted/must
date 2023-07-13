@@ -313,7 +313,17 @@ class FmodExBackend(base_backend.BaseBackend):
         self.type = 'none'  # TODO
 
     def init(self) -> None:
-        self.check_result_err(self.fmod.FMOD_System_Create(self.sys, self.header_version), 'Failed to create system')
+        res = self.fmod.FMOD_System_Create(self.sys, self.header_version)
+        if res == self.fmod.FMOD_ERR_HEADER_MISMATCH:
+            for i in range(100000000):  # Brute force
+                res = self.fmod.FMOD_System_Create(self.sys, i)
+                if res == self.fmod.FMOD_OK:
+                    break
+        self.check_result_err(res, 'Failed to create system')
+        ver_buf = ctypes.c_uint()
+        self.fmod.FMOD_System_GetVersion(self.sys, ver_buf)
+        if not ver_buf.value == self.header_version:
+            log.warn(f'Incorrect FmodEx version configured. Please change it in config to {hex(ver_buf.value)}')
         self.check_result_err(self.fmod.FMOD_System_Init(
             self.sys, 1, self.fmod.FMOD_INIT_THREAD_UNSAFE, None
         ), 'Failed to init system')
