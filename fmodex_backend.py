@@ -4,7 +4,7 @@ import log
 
 
 class FmodExWrapper(base_backend.BaseWrapper):
-    def __init__(self, fmod_lib: ctypes.CDLL, is_le: bool = True) -> None:
+    def __init__(self, fmod_lib: ctypes.CDLL) -> None:
         super().__init__()
         self.lib = fmod_lib
         if not self.lib:
@@ -297,7 +297,7 @@ class FmodExBackend(base_backend.BaseBackend):
         self.app = app
         self.header_version = eval(app.config['fmod_version'])
         self.sys = ctypes.c_void_p()
-        self.fmod = FmodExWrapper(libs.get('fmod'), app.is_le)
+        self.fmod = FmodExWrapper(libs.get('fmod'))
 
     def init(self) -> None:
         self.check_result_err(self.fmod.FMOD_System_Create(self.sys, self.header_version), 'Failed to create system')
