@@ -263,21 +263,33 @@ class FmodExMusic(base_backend.BaseMusic):
         ), 'Failed to play music')
 
     def stop(self) -> None:
-        self.bk.check_result_warn(self.fmod.FMOD_Channel_Stop(self.ch), 'Failed to stop channel')
+        res = self.fmod.FMOD_Channel_Stop(self.ch)
+        if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
+            return
+        self.bk.check_result_warn(res, 'Failed to stop channel')
 
     def is_playing(self) -> bool:
         buf = ctypes.c_int(0)
-        self.bk.check_result_warn(self.fmod.FMOD_Channel_IsPlaying(self.ch, buf), 'Failed to get is channel playing')
+        res = self.fmod.FMOD_Channel_IsPlaying(self.ch, buf)
+        if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
+            return False
+        self.bk.check_result_warn(res, 'Failed to get is channel playing')
         return bool(buf.value)
 
     def set_paused(self, paused: bool) -> None:
-        self.bk.check_result_warn(self.fmod.FMOD_Channel_SetPaused(self.ch, paused), 'Failed to set channel paused')
+        res = self.fmod.FMOD_Channel_SetPaused(self.ch, paused)
+        if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
+            return
+        self.bk.check_result_warn(res, 'Failed to set channel paused')
 
     def rewind(self) -> None:
         pass
 
     def set_volume(self, volume: float = 1.0) -> None:
-        self.bk.check_result_warn(self.fmod.FMOD_Channel_SetVolume(self.ch, volume), 'Failed to set channel volume')
+        res = self.fmod.FMOD_Channel_SetVolume(self.ch, volume)
+        if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
+            return
+        self.bk.check_result_warn(res, 'Failed to set channel volume')
 
     def destroy(self) -> None:
         if not self.fmod:
