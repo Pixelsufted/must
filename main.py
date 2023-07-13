@@ -67,7 +67,7 @@ class App:
         while self.running and self.current_music and self.current_music.is_playing():
             pass
 
-    def next_track(self) -> None:
+    def next_track(self) -> any:
         # TODO: maybe allow to change mode in real time?
         if self.config['main_playlist_mode'] == 'default':
             self.default_track_id += 1
@@ -75,19 +75,23 @@ class App:
                 self.default_track_id = 0
             fp = self.full_list[self.default_track_id]
             try:
-                self.play_new_music(self.bk.open_music(fp))
+                return self.bk.open_music(fp)
             except RuntimeError:
-                return
+                return None
         elif self.config['main_playlist_mode'] == 'full_random':
             fp = random.choice(self.full_list)
             try:
-                self.play_new_music(self.bk.open_music(fp))
+                return self.bk.open_music(fp)
             except RuntimeError:
-                return
+                return None
+        return None
 
     def main_loop(self) -> None:
         while self.running:
-            self.next_track()
+            mus = self.next_track()
+            while not mus:
+                mus = self.next_track()
+            self.play_new_music(mus)
             self.track_loop()
 
     def play_new_music(self, mus: base_backend.BaseMusic) -> None:
