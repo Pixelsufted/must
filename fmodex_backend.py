@@ -175,10 +175,28 @@ class FmodExWrapper(base_backend.BaseWrapper):
             self.FMOD_ERR_RECORD_DISCONNECTED: "The specified recording driver has been disconnected.",
             self.FMOD_ERR_TOOMANYSAMPLES: "The length provided exceeds the allowable limit.",
         }
+        self.FMOD_INIT_NORMAL = 0x00000000
+        self.FMOD_INIT_STREAM_FROM_UPDATE = 0x00000001
+        self.FMOD_INIT_MIX_FROM_UPDATE = 0x00000002
+        self.FMOD_INIT_3D_RIGHT_HANDED = 0x00000004
+        self.FMOD_INIT_CLIP_OUTPUT = 0x00000008
+        self.FMOD_INIT_CHANNEL_LOWPASS = 0x00000100
+        self.FMOD_INIT_CHANNEL_DISTANCE_FILTER = 0x00000200
+        self.FMOD_INIT_PROFILE_ENABLE = 0x00010000
+        self.FMOD_INIT_VOL0_BECOMES_VIRTUAL = 0x00020000
+        self.FMOD_INIT_GEOMETRY_USE_CLOSEST = 0x00040000
+        self.FMOD_INIT_PREFER_DOLBY_DOWN_MIX = 0x00080000
+        self.FMOD_INIT_THREAD_UNSAFE = 0x00100000
+        self.FMOD_INIT_PROFILE_METER_ALL = 0x00200000
+        self.FMOD_INIT_MEMORY_TRACKING = 0x00400000
         self.FMOD_System_Create = self.wrap(
             'FMOD_System_Create', args=(ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint), res=ctypes.c_int
         )
         self.FMOD_System_Release = self.wrap('FMOD_System_Release', args=(ctypes.c_void_p, ), res=ctypes.c_int)
+        self.FMOD_System_Init = self.wrap('FMOD_System_Init', args=(
+            ctypes.c_void_p, ctypes.c_int, ctypes.c_uint, ctypes.c_void_p
+        ), res=ctypes.c_int)
+        self.FMOD_System_Close = self.wrap('FMOD_System_Close', args=(ctypes.c_void_p, ), res=ctypes.c_int)
 
 
 class FmodExMusic(base_backend.BaseMusic):
@@ -223,12 +241,16 @@ class FmodExBackend(base_backend.BaseBackend):
 
     def init(self) -> None:
         self.check_result_err(self.fmod.FMOD_System_Create(self.sys, self.header_version), 'Failed to create system')
+        self.check_result_err(self.fmod.FMOD_System_Init(
+            self.sys, 1, self.fmod.FMOD_INIT_THREAD_UNSAFE, None
+        ), 'Failed to init system')
 
     def open_music(self, fp: str) -> FmodExMusic:
         pass
 
     def quit(self) -> None:
-        self.check_result_warn(self.fmod.FMOD_System_Create(self.sys, self.header_version), 'Failed to release system')
+        self.check_result_warn(self.fmod.FMOD_System_Close(self.sys), 'Failed to close system')
+        self.check_result_warn(self.fmod.FMOD_System_Create(self.sys), 'Failed to release system')
 
     def destroy(self) -> None:
         self.sys = None
