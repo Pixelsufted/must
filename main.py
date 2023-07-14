@@ -4,9 +4,9 @@ import json
 import random
 import ctypes
 import log
-import base_backend
-import sdl2_backend
-import fmodex_backend
+import backend_base
+import backend_sdl2
+import backend_fmodex
 
 
 class App:
@@ -31,14 +31,14 @@ class App:
         self.config = self.read_json(self.config_path)
         if self.config['audio_backend'] == 'sdl2':
             self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
-            self.bk: base_backend.BaseBackend = sdl2_backend.SDL2Backend(
+            self.bk: backend_base.BaseBackend = backend_sdl2.SDL2Backend(
                 self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix)
             )
         elif self.config['audio_backend'] == 'fmodex':
             if sys.platform == 'win32':
                 self.search_libs('VCRUNTIME140_APP')
             self.search_libs('libfsbvorbis64')
-            self.bk: base_backend.BaseBackend = fmodex_backend.FmodExBackend(
+            self.bk: backend_base.BaseBackend = backend_fmodex.FmodExBackend(
                 self, self.search_libs('opus', 'media_foundation', 'fsbank', 'fmod', prefix=self.auto_prefix)
             )
         else:
@@ -105,14 +105,14 @@ class App:
 
     def main_loop(self) -> None:
         while self.running:
-            mus: base_backend.BaseMusic = self.next_track()
+            mus: backend_base.BaseMusic = self.next_track()
             while not mus:
                 mus = self.next_track()
             log.info(mus.fn)
             self.play_new_music(mus)
             self.track_loop()
 
-    def play_new_music(self, mus: base_backend.BaseMusic) -> None:
+    def play_new_music(self, mus: backend_base.BaseMusic) -> None:
         if self.current_music:
             self.current_music.stop()
             self.current_music.destroy()

@@ -1,9 +1,9 @@
 import ctypes
-import base_backend
+import backend_base
 import log
 
 
-class FmodExWrapper(base_backend.BaseWrapper):
+class FmodExWrapper(backend_base.BaseWrapper):
     def __init__(self, fmod_lib: ctypes.CDLL) -> None:
         super().__init__()
         self.lib = fmod_lib
@@ -249,7 +249,7 @@ class FmodExWrapper(base_backend.BaseWrapper):
         return super().wrap(func_name=func_name, args=args, res=res)
 
 
-class FmodExMusic(base_backend.BaseMusic):
+class FmodExMusic(backend_base.BaseMusic):
     def __init__(self, bk: any, fmod: FmodExWrapper, fp: str, mus: ctypes.c_void_p) -> None:
         super().__init__(fp)
         self.bk = bk
@@ -303,7 +303,7 @@ class FmodExMusic(base_backend.BaseMusic):
         self.fmod = None
 
 
-class FmodExBackend(base_backend.BaseBackend):
+class FmodExBackend(backend_base.BaseBackend):
     def __init__(self, app: any, libs: dict) -> None:
         super().__init__()
         self.app = app

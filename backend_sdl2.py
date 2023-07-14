@@ -1,9 +1,9 @@
 import ctypes
-import base_backend
+import backend_base
 import log
 
 
-class SDL2Wrapper(base_backend.BaseWrapper):
+class SDL2Wrapper(backend_base.BaseWrapper):
     def __init__(self, sdl2_lib: ctypes.CDLL, is_le: bool = True) -> None:
         super().__init__()
         self.lib = sdl2_lib
@@ -44,7 +44,7 @@ class SDL2Wrapper(base_backend.BaseWrapper):
         self.SDL_GetCurrentAudioDriver = self.wrap('SDL_GetCurrentAudioDriver', res=ctypes.c_char_p)
 
 
-class SDL2MixWrapper(base_backend.BaseWrapper):
+class SDL2MixWrapper(backend_base.BaseWrapper):
     def __init__(self, sdl2_mixer_lib: ctypes.CDLL) -> None:
         super().__init__()
         self.lib = sdl2_mixer_lib
@@ -129,7 +129,7 @@ class SDL2MixWrapper(base_backend.BaseWrapper):
         self.Mix_RewindMusic = self.wrap('Mix_RewindMusic')
 
 
-class SDL2Music(base_backend.BaseMusic):
+class SDL2Music(backend_base.BaseMusic):
     def __init__(self, app: any, sdl: SDL2Wrapper, mix: SDL2MixWrapper, fp: str, mus: ctypes.c_void_p) -> None:
         super().__init__(fp)
         self.app = app
@@ -171,7 +171,7 @@ class SDL2Music(base_backend.BaseMusic):
         self.app = None
 
 
-class SDL2Backend(base_backend.BaseBackend):
+class SDL2Backend(backend_base.BaseBackend):
     def __init__(self, app: any, libs: dict) -> None:
         super().__init__()
         self.app = app
