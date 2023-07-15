@@ -143,6 +143,7 @@ class App:
             self.current_music.destroy()
         mus.play()
         mus.set_volume(self.volume)
+        mus.set_speed(self.speed)
         self.current_music = mus
 
     def poll_commands(self) -> None:
