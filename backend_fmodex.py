@@ -263,6 +263,9 @@ class FmodExMusic(backend_base.BaseMusic):
         self.fmod = fmod
         self.mus = mus
         self.ch = ctypes.c_void_p()
+        '''freq_buf = ctypes.c_float(0.0)
+        self.bk.check_result_warn(self.fmod.FMOD_Sound_GetDefaults(self.mus, freq_buf, None), 'Failed to get def info')
+        self.freq = freq_buf.value'''
 
     def play(self) -> None:
         self.bk.check_result_warn(self.fmod.FMOD_System_PlaySound(
@@ -305,6 +308,8 @@ class FmodExMusic(backend_base.BaseMusic):
         self.bk.check_result_warn(res, 'Failed to set channel volume')
 
     def set_speed(self, speed: float = 1.0) -> None:
+        if not self.freq:
+            return
         res = self.fmod.FMOD_Channel_SetFrequency(self.ch, self.freq * speed)
         if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
             return
