@@ -42,6 +42,10 @@ class App:
                 self.client: com_base.BaseClient = com_socket.SocketClient(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
+            if self.argv:
+                self.client.send(';'.join(self.argv))
+            else:
+                raise NotImplemented('TODO: command line')
             self.client.destroy()
             self.exit_code = 0
             return
@@ -140,7 +144,7 @@ class App:
     def cleanup(self) -> None:
         if self.server:
             self.server.destroy()
-            self.server = None
+            # self.server = None
         if self.current_music:
             self.current_music.stop()
             self.current_music.destroy()

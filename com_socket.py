@@ -1,3 +1,4 @@
+import sys
 import socket
 import threading
 import log
@@ -22,12 +23,23 @@ class SocketServer(com_base.BaseServer):
         pass
 
     def accept_clients(self) -> None:
-        while self.running:
-            conn, addr = self.sock.accept()
+        while self.running and self.sock:
+            try:
+                conn, addr = self.sock.accept()
+            except OSError:
+                break
             threading.Thread(target=self.client_thread, args=(conn, addr)).start()
 
     def client_thread(self, conn: socket.socket, addr: tuple) -> None:
-        pass
+        while self.running:
+            msg_len_buf = conn.recv(10)
+            if not msg_len_buf:
+                continue
+            msg_len = int.from_bytes(msg_len_buf, 'little', signed=False)
+            encoded_msg = conn.recv(msg_len)
+            msg = self.decode_msg(encoded_msg)
+            log.info(msg)
+        conn.close()
 
     def destroy(self) -> None:
         self.running = False
@@ -45,6 +57,10 @@ class SocketClient(com_base.BaseClient):
             self.sock.connect((app.config['socket_ip'], app.config['socket_port']))
         except Exception as _err:
             raise RuntimeError(str(_err))
+
+    def send(self, msg: str) -> None:
+        encoded_msg = com_base.BaseServer.encode_msg(msg)
+        self.sock.send(int.to_bytes(len(encoded_msg), 10, 'little', signed=False) + encoded_msg)
 
     def destroy(self) -> None:
         super().destroy()
