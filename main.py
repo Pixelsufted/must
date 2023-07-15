@@ -44,6 +44,7 @@ class App:
                 raise FileNotFoundError('Unknown communication type')
             if self.argv:
                 self.client.send(';'.join(self.argv))
+                # self.client.send('disconnect')
             else:
                 raise NotImplemented('TODO: command line')
             self.client.destroy()

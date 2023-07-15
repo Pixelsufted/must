@@ -38,7 +38,8 @@ class SocketServer(com_base.BaseServer):
             msg_len = int.from_bytes(msg_len_buf, 'little', signed=False)
             encoded_msg = conn.recv(msg_len)
             msg = self.decode_msg(encoded_msg)
-            log.info(msg)
+            if msg == 'disconnect':
+                break
         conn.close()
 
     def destroy(self) -> None:
