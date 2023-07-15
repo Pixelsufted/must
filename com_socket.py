@@ -15,12 +15,34 @@ class SocketServer(com_base.BaseServer):
         except OSError:
             raise RuntimeError('Failed to create socket')
         # self.sock.setblocking(False)
+        self.clients = []
+        self.should_die_clients = []
         self.sock.listen()
         self.running = True
         threading.Thread(target=self.accept_clients).start()
 
     def update(self) -> None:
-        pass
+        if self.clients:
+            log.info(len(self.clients))
+        for i in range(len(self.clients)):
+            conn = self.clients[i]
+            msg_len_buf = conn.recv(10)
+            if not msg_len_buf:
+                continue
+            msg_len = int.from_bytes(msg_len_buf, 'little', signed=False)
+            encoded_msg = conn.recv(msg_len)
+            msg = self.decode_msg(encoded_msg)
+            if self.should_die_clients[i]:
+                if msg == 'do_not_die_please':
+                    self.should_die_clients[i] = False
+                conn.close()
+                del self.clients[i]
+                del self.should_die_clients[i]
+            elif msg == 'disconnect':
+                conn.close()
+                del self.clients[i]
+                del self.should_die_clients[i]
+            log.info(msg)
 
     def accept_clients(self) -> None:
         while self.running and self.sock:
@@ -28,18 +50,11 @@ class SocketServer(com_base.BaseServer):
                 conn, addr = self.sock.accept()
             except OSError:
                 break
-            threading.Thread(target=self.client_thread, args=(conn, addr)).start()
+            self.clients.append(conn)
+            self.should_die_clients.append(True)
+            # threading.Thread(target=self.client_thread, args=(conn, addr)).start()
 
-    def client_thread(self, conn: socket.socket, addr: tuple) -> None:
-        while self.running:
-            msg_len_buf = conn.recv(10)
-            if not msg_len_buf:
-                continue
-            msg_len = int.from_bytes(msg_len_buf, 'little', signed=False)
-            encoded_msg = conn.recv(msg_len)
-            msg = self.decode_msg(encoded_msg)
-            if msg == 'disconnect':
-                break
+    def client_thread(self, conn: socket.socket) -> None:
         conn.close()
 
     def destroy(self) -> None:
