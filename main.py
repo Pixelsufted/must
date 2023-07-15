@@ -157,7 +157,11 @@ class App:
                 if cmd == 'next':
                     if self.current_music:
                         self.current_music.stop()
-                elif cmd == 'exit':
+                elif cmd == 'toggle_pause':
+                    if self.current_music:
+                        self.current_music.paused = not self.current_music.paused
+                        self.current_music.set_paused(self.current_music.paused)
+                elif cmd == 'exit' or cmd == 'quit':
                     self.running = False
 
     def cleanup(self) -> None:
@@ -174,7 +178,7 @@ class App:
         while msg:
             try:
                 self.client.send(msg)
-                if msg == 'disconnect' or msg == 'exit':
+                if msg == 'disconnect' or msg == 'exit' or msg == 'quit':
                     self.exit_code = 0
                     return
             except RuntimeError:

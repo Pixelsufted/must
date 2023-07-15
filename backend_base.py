@@ -23,6 +23,7 @@ class BaseMusic:
         self.fp = fp
         self.fn = os.path.basename(fp)
         self.type = 'none'
+        self.paused = False
 
     def play(self) -> None:
         pass
