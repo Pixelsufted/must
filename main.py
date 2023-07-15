@@ -31,10 +31,16 @@ class App:
                 os.path.join(self.cwd, 'config.json'), self.read_json(os.path.join(self.cwd, 'default_config.json'))
             )
         self.config = self.read_json(self.config_path)
-        if self.config['com_type'] == 'tcp':
-            self.server = com_socket.SocketServer(self)
-        else:
-            raise RuntimeError('Unknown communication type')
+        try:
+            if self.config['com_type'] == 'tcp':
+                self.server = com_socket.SocketServer(self)
+            else:
+                raise FileNotFoundError('Unknown communication type')
+        except RuntimeError:
+            if self.config['com_type'] == 'tcp':
+                self.client = com_socket.SocketClient()
+            else:
+                raise FileNotFoundError('Unknown communication type')
         if self.config['audio_backend'] == 'sdl2':
             self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
             self.bk: backend_base.BaseBackend = backend_sdl2.SDL2Backend(
@@ -48,7 +54,7 @@ class App:
                 self, self.search_libs('opus', 'media_foundation', 'fsbank', 'fmod', prefix=self.auto_prefix)
             )
         else:
-            raise RuntimeError('Unknown audio backend')
+            raise FileNotFoundError('Unknown audio backend')
         self.bk.init()
         self.volume = self.config['volume']
         if self.volume > 1.0:
