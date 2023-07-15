@@ -248,7 +248,7 @@ class FmodExWrapper(backend_base.BaseWrapper):
         self.FMOD_Channel_IsPlaying = self.wrap(
             'FMOD_Channel_IsPlaying', args=(ctypes.c_void_p, ctypes.POINTER(ctypes.c_int))
         )
-        self.FMOD_Sound_GetDefaults = self.wrap('FMOD_Channel_GetFrequency', args=(
+        self.FMOD_Sound_GetDefaults = self.wrap('FMOD_Sound_GetDefaults', args=(
             ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_int)
         ))
 
