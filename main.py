@@ -36,11 +36,13 @@ class App:
                 self.server = com_socket.SocketServer(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
+            self.is_server = True
         except RuntimeError:
             if self.config['com_type'] == 'tcp':
                 self.client = com_socket.SocketClient()
             else:
                 raise FileNotFoundError('Unknown communication type')
+            self.is_server = False
         if self.config['audio_backend'] == 'sdl2':
             self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
             self.bk: backend_base.BaseBackend = backend_sdl2.SDL2Backend(
@@ -133,6 +135,10 @@ class App:
         self.current_music = mus
 
     def cleanup(self) -> None:
+        if self.is_server:
+            if self.server:
+                self.server.destroy()
+                self.server = None
         if self.current_music:
             self.current_music.stop()
             self.current_music.destroy()
