@@ -45,15 +45,9 @@ class SocketClient(com_base.BaseClient):
             self.sock.connect((app.config['socket_ip'], app.config['socket_port']))
         except Exception as _err:
             raise RuntimeError(str(_err))
-        self.running = False
-        self.run()
-
-    def run(self) -> None:
-        self.running = True
 
     def destroy(self) -> None:
         super().destroy()
-        self.running = False
         if self.sock:
             self.sock.close()
             self.sock = None
