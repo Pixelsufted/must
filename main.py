@@ -44,11 +44,12 @@ class App:
                 raise FileNotFoundError('Unknown communication type')
             if self.argv:
                 self.client.send(';'.join(self.argv))
+                self.exit_code = 0
                 # self.client.send('disconnect')
             else:
                 self.client_prompt()
             self.client.destroy()
-            self.exit_code = 0
+            # self.exit_code = 0
             return
         if self.config['audio_backend'] == 'sdl2':
             self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
@@ -157,9 +158,9 @@ class App:
             try:
                 self.client.send(msg)
                 if msg == 'disconnect':
-                    break
-            except OSError:
-                self.exit_code = 1
+                    self.exit_code = 0
+                    return
+            except RuntimeError:
                 return
             msg = input('>>> ')
 

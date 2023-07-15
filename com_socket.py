@@ -79,7 +79,10 @@ class SocketClient(com_base.BaseClient):
         if not msg:
             return
         encoded_msg = com_base.BaseServer.encode_msg(msg)
-        self.sock.send(int.to_bytes(len(encoded_msg), 10, 'little', signed=False) + encoded_msg)
+        try:
+            self.sock.send(int.to_bytes(len(encoded_msg), 10, 'little', signed=False) + encoded_msg)
+        except Exception as _err:
+            raise RuntimeError(str(_err))
 
     def destroy(self) -> None:
         super().destroy()
