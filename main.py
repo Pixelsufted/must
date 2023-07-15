@@ -46,16 +46,7 @@ class App:
                 self.client.send(';'.join(self.argv))
                 # self.client.send('disconnect')
             else:
-                msg = 'i_want_to_live_please_do\'nt_die'
-                while msg:
-                    try:
-                        self.client.send(msg)
-                        if msg == 'disconnect':
-                            break
-                    except OSError:
-                        self.exit_code = 1
-                        return
-                    msg = input('>>> ')
+                self.client_prompt()
             self.client.destroy()
             self.exit_code = 0
             return
@@ -159,6 +150,18 @@ class App:
             self.current_music.stop()
             self.current_music.destroy()
             self.current_music = None
+
+    def client_prompt(self) -> None:
+        msg = 'i_want_to_live_please_do\'nt_die'
+        while msg:
+            try:
+                self.client.send(msg)
+                if msg == 'disconnect':
+                    break
+            except OSError:
+                self.exit_code = 1
+                return
+            msg = input('>>> ')
 
     def read_json(self, fp: str) -> dict:
         f = open(fp, 'r', encoding=self.encoding)
