@@ -133,7 +133,7 @@ class App:
             mus: backend_base.BaseMusic = self.next_track()
             while not mus:
                 mus = self.next_track()
-            log.info(mus.fn)
+            log.info(f'{os.path.splitext(mus.fn)[0]}')
             self.play_new_music(mus)
             self.track_loop()
 

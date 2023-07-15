@@ -176,6 +176,59 @@ class FmodExWrapper(backend_base.BaseWrapper):
             self.FMOD_ERR_RECORD_DISCONNECTED: "The specified recording driver has been disconnected.",
             self.FMOD_ERR_TOOMANYSAMPLES: "The length provided exceeds the allowable limit.",
         }
+        # - Music Formats -
+        self.FMOD_SOUND_TYPE_UNKNOWN = 0
+        self.FMOD_SOUND_TYPE_AIFF = 1
+        self.FMOD_SOUND_TYPE_ASF = 2
+        self.FMOD_SOUND_TYPE_DLS = 3
+        self.FMOD_SOUND_TYPE_FLAC = 4
+        self.FMOD_SOUND_TYPE_FSB = 5
+        self.FMOD_SOUND_TYPE_IT = 6
+        self.FMOD_SOUND_TYPE_MIDI = 7
+        self.FMOD_SOUND_TYPE_MOD = 8
+        self.FMOD_SOUND_TYPE_MPEG = 9
+        self.FMOD_SOUND_TYPE_OGG_VORBIS = 10
+        self.FMOD_SOUND_TYPE_PLAYLIST = 11
+        self.FMOD_SOUND_TYPE_RAW = 12
+        self.FMOD_SOUND_TYPE_S3M = 13
+        self.FMOD_SOUND_TYPE_USER = 14
+        self.FMOD_SOUND_TYPE_WAV = 15
+        self.FMOD_SOUND_TYPE_XM = 16
+        self.FMOD_SOUND_TYPE_XMA = 17
+        self.FMOD_SOUND_TYPE_AUDIO_QUEUE = 18
+        self.FMOD_SOUND_TYPE_AT9 = 19
+        self.FMOD_SOUND_TYPE_VORBIS = 20
+        self.FMOD_SOUND_TYPE_MEDIA_FOUNDATION = 21
+        self.FMOD_SOUND_TYPE_MEDIA_CODEC = 22
+        self.FMOD_SOUND_TYPE_FAD_PCM = 23
+        self.FMOD_SOUND_TYPE_OPUS = 24
+        self.format_map = {
+            self.FMOD_SOUND_TYPE_UNKNOWN: 'none',
+            self.FMOD_SOUND_TYPE_AIFF: 'aiff',
+            self.FMOD_SOUND_TYPE_ASF: 'asf',
+            self.FMOD_SOUND_TYPE_DLS: 'dls',
+            self.FMOD_SOUND_TYPE_FLAC: 'flac',
+            self.FMOD_SOUND_TYPE_FSB: 'fsb',
+            self.FMOD_SOUND_TYPE_IT: 'it',
+            self.FMOD_SOUND_TYPE_MIDI: 'mid',
+            self.FMOD_SOUND_TYPE_MOD: 'mod',
+            self.FMOD_SOUND_TYPE_MPEG: 'mp3',
+            self.FMOD_SOUND_TYPE_OGG_VORBIS: 'ogg',
+            self.FMOD_SOUND_TYPE_PLAYLIST: 'playlist',
+            self.FMOD_SOUND_TYPE_RAW: 'raw',
+            self.FMOD_SOUND_TYPE_S3M: 's3m',
+            self.FMOD_SOUND_TYPE_USER: 'user',
+            self.FMOD_SOUND_TYPE_WAV: 'wav',
+            self.FMOD_SOUND_TYPE_XM: 'xm',
+            self.FMOD_SOUND_TYPE_XMA: 'xma',
+            self.FMOD_SOUND_TYPE_AUDIO_QUEUE: 'audio_queue',
+            self.FMOD_SOUND_TYPE_AT9: 'at9',
+            self.FMOD_SOUND_TYPE_VORBIS: 'vorbis',
+            self.FMOD_SOUND_TYPE_MEDIA_FOUNDATION: 'media_foundation',
+            self.FMOD_SOUND_TYPE_MEDIA_CODEC: 'media_codec',
+            self.FMOD_SOUND_TYPE_FAD_PCM: 'pcm',
+            self.FMOD_SOUND_TYPE_OPUS: 'opus'
+        }
         # - Init Flags -
         self.FMOD_INIT_NORMAL = 0x00000000
         self.FMOD_INIT_STREAM_FROM_UPDATE = 0x00000001
@@ -251,6 +304,10 @@ class FmodExWrapper(backend_base.BaseWrapper):
         self.FMOD_Sound_GetDefaults = self.wrap('FMOD_Sound_GetDefaults', args=(
             ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_int)
         ))
+        self.FMOD_Sound_GetFormat = self.wrap('FMOD_Sound_GetFormat', args=(
+            ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
+            ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int)
+        ))
 
     def wrap(self, func_name: str, args: tuple = (), res: any = ctypes.c_int) -> any:
         return super().wrap(func_name=func_name, args=args, res=res)
@@ -263,6 +320,12 @@ class FmodExMusic(backend_base.BaseMusic):
         self.fmod = fmod
         self.mus = mus
         self.ch = ctypes.c_void_p()
+        type_buf = ctypes.c_int(0)
+        self.bk.check_result_warn(
+            self.fmod.FMOD_Sound_GetFormat(self.mus, type_buf, None, None, None), 'Failed to get sound info'
+        )
+        self.type = self.fmod.format_map.get(type_buf.value) or 'none'
+        # We don't need this in the current context
         '''freq_buf = ctypes.c_float(0.0)
         self.bk.check_result_warn(self.fmod.FMOD_Sound_GetDefaults(self.mus, freq_buf, None), 'Failed to get def info')
         self.freq = freq_buf.value'''
