@@ -162,6 +162,7 @@ class App:
                     if self.current_music:
                         self.current_music.paused = not self.current_music.paused
                         self.current_music.set_paused(self.current_music.paused)
+                        log.info('Paused: ', self.current_music.paused)
                 elif cmd.startswith('volume'):
                     try:
                         new_volume = float(cmd.split(' ')[-1])
@@ -173,6 +174,7 @@ class App:
                     self.volume = max(min(self.volume + new_volume, 1.0), 0.0)
                     if self.current_music:
                         self.current_music.set_volume(self.volume)
+                    log.info('New Volume: ', self.volume)
                 elif cmd.startswith('speed'):
                     try:
                         new_speed = float(cmd.split(' ')[-1])
@@ -184,6 +186,7 @@ class App:
                     self.speed = max(min(self.speed + new_speed, 1000.0), 0.0)
                     if self.current_music:
                         self.current_music.set_speed(self.speed)
+                    log.info('New Speed: ', self.speed)
                 elif cmd == 'exit' or cmd == 'quit':
                     self.running = False
                 else:
