@@ -153,7 +153,6 @@ class App:
                 if os.path.isfile(cmd):
                     temp_mus.append(cmd)
                     continue
-                log.info('Executing', cmd)
                 if cmd == 'next':
                     if self.current_music:
                         self.current_music.stop()
@@ -161,8 +160,16 @@ class App:
                     if self.current_music:
                         self.current_music.paused = not self.current_music.paused
                         self.current_music.set_paused(self.current_music.paused)
+                elif cmd.startswith('volume'):
+                    if cmd.startswith('volume '):
+                        self.volume = 0.0
+                    self.volume = max(min(self.volume + float(cmd.split(' ')[-1]), 1.0), 0.0)
+                    if self.current_music:
+                        self.current_music.set_volume(self.volume)
                 elif cmd == 'exit' or cmd == 'quit':
                     self.running = False
+                else:
+                    log.warn('Unknown Command', cmd)
 
     def cleanup(self) -> None:
         if self.server:
