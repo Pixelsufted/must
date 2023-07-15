@@ -24,7 +24,7 @@ class BaseMusic:
         self.fn = os.path.basename(fp)
         self.type = 'none'
         self.paused = False
-        self.freq = 0
+        self.freq = 0.0
 
     def play(self) -> None:
         pass

@@ -241,6 +241,10 @@ class FmodExWrapper(backend_base.BaseWrapper):
         self.FMOD_Channel_Stop = self.wrap('FMOD_Channel_Stop', args=(ctypes.c_void_p, ))
         self.FMOD_Channel_SetPaused = self.wrap('FMOD_Channel_SetPaused', args=(ctypes.c_void_p, ctypes.c_int))
         self.FMOD_Channel_SetVolume = self.wrap('FMOD_Channel_SetVolume', args=(ctypes.c_void_p, ctypes.c_float))
+        self.FMOD_Channel_SetFrequency = self.wrap('FMOD_Channel_SetFrequency', args=(ctypes.c_void_p, ctypes.c_float))
+        self.FMOD_Channel_GetFrequency = self.wrap(
+            'FMOD_Channel_GetFrequency', args=(ctypes.c_void_p, ctypes.POINTER(ctypes.c_float))
+        )
         self.FMOD_Channel_IsPlaying = self.wrap(
             'FMOD_Channel_IsPlaying', args=(ctypes.c_void_p, ctypes.POINTER(ctypes.c_int))
         )
@@ -261,6 +265,12 @@ class FmodExMusic(backend_base.BaseMusic):
         self.bk.check_result_warn(self.fmod.FMOD_System_PlaySound(
             self.bk.sys, self.mus, None, 0, self.ch
         ), 'Failed to play music')
+        freq_buf = ctypes.c_float(0.0)
+        res = self.fmod.FMOD_Channel_GetFrequency(self.ch, freq_buf)
+        if res == self.fmod.FMOD_OK:
+            self.freq = freq_buf.value
+        else:
+            self.bk.check_result_warn(res, 'Failed to play music')
 
     def stop(self) -> None:
         res = self.fmod.FMOD_Channel_Stop(self.ch)
@@ -290,6 +300,12 @@ class FmodExMusic(backend_base.BaseMusic):
         if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
             return
         self.bk.check_result_warn(res, 'Failed to set channel volume')
+
+    def set_speed(self, speed: float = 1.0) -> None:
+        res = self.fmod.FMOD_Channel_SetFrequency(self.ch, self.freq * speed)
+        if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
+            return
+        self.bk.check_result_warn(res, 'Failed to set channel speed')
 
     def destroy(self) -> None:
         if not self.fmod:

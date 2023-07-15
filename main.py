@@ -180,7 +180,7 @@ class App:
                         continue
                     if cmd.startswith('speed '):
                         self.speed = 0.0
-                    self.speed = max(min(self.speed + new_speed, 1.0), 0.0)
+                    self.speed = max(min(self.speed + new_speed, 1000.0), 0.0)
                     if self.current_music:
                         self.current_music.set_speed(self.speed)
                 elif cmd == 'exit' or cmd == 'quit':
