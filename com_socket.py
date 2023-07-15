@@ -18,6 +18,9 @@ class SocketServer(com_base.BaseServer):
         self.running = True
         threading.Thread(target=self.accept_clients).start()
 
+    def update(self) -> None:
+        pass
+
     def accept_clients(self) -> None:
         while self.running:
             conn, addr = self.sock.accept()

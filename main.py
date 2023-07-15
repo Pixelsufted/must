@@ -96,6 +96,7 @@ class App:
 
     def track_loop(self) -> None:
         while self.running and self.current_music and self.current_music.is_playing():
+            self.server.update()
             self.bk.update()
 
     def next_track(self) -> any:
