@@ -67,6 +67,7 @@ class App:
             raise FileNotFoundError('Unknown audio backend')
         self.bk.init()
         self.volume = self.config['volume']
+        self.speed = self.config['speed']
         if self.volume > 1.0:
             raise RuntimeError(f'Volume {self.volume} is bigger than 1.0')
         self.full_list = []
@@ -161,11 +162,27 @@ class App:
                         self.current_music.paused = not self.current_music.paused
                         self.current_music.set_paused(self.current_music.paused)
                 elif cmd.startswith('volume'):
+                    try:
+                        new_volume = float(cmd.split(' ')[-1])
+                    except (ValueError, IndexError) as _err:
+                        log.warn(f'Could not convert volume value:', _err)
+                        continue
                     if cmd.startswith('volume '):
                         self.volume = 0.0
-                    self.volume = max(min(self.volume + float(cmd.split(' ')[-1]), 1.0), 0.0)
+                    self.volume = max(min(self.volume + new_volume, 1.0), 0.0)
                     if self.current_music:
                         self.current_music.set_volume(self.volume)
+                elif cmd.startswith('speed'):
+                    try:
+                        new_speed = float(cmd.split(' ')[-1])
+                    except (ValueError, IndexError) as _err:
+                        log.warn(f'Could not convert speed value:', _err)
+                        continue
+                    if cmd.startswith('speed '):
+                        self.speed = 0.0
+                    self.speed = max(min(self.speed + new_speed, 1.0), 0.0)
+                    if self.current_music:
+                        self.current_music.set_speed(self.speed)
                 elif cmd == 'exit' or cmd == 'quit':
                     self.running = False
                 else:

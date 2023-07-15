@@ -24,6 +24,7 @@ class BaseMusic:
         self.fn = os.path.basename(fp)
         self.type = 'none'
         self.paused = False
+        self.freq = 0
 
     def play(self) -> None:
         pass
@@ -38,6 +39,9 @@ class BaseMusic:
         pass
 
     def set_volume(self, volume: float = 1.0) -> None:
+        pass
+
+    def set_speed(self, speed: float = 1.0) -> None:
         pass
 
     def destroy(self) -> None:
