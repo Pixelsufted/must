@@ -4,6 +4,8 @@ import json
 import random
 import ctypes
 import log
+import com_base
+import com_socket
 import backend_base
 import backend_sdl2
 import backend_fmodex
@@ -29,6 +31,10 @@ class App:
                 os.path.join(self.cwd, 'config.json'), self.read_json(os.path.join(self.cwd, 'default_config.json'))
             )
         self.config = self.read_json(self.config_path)
+        if self.config['com_type'] == 'tcp':
+            self.server = com_socket.SocketServer(self)
+        else:
+            raise RuntimeError('Unknown communication type')
         if self.config['audio_backend'] == 'sdl2':
             self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
             self.bk: backend_base.BaseBackend = backend_sdl2.SDL2Backend(
