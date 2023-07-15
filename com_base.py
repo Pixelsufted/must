@@ -10,8 +10,11 @@ class BaseServer:
 
 
 class BaseClient:
-    def __init__(self) -> None:
+    def __init__(self, app: any) -> None:
+        self.app = app
+
+    def run(self) -> None:
         pass
 
     def destroy(self) -> None:
-        pass
+        self.app = None

@@ -27,7 +27,7 @@ class SocketServer(com_base.BaseServer):
             threading.Thread(target=self.client_thread, args=(conn, addr)).start()
 
     def client_thread(self, conn: socket.socket, addr: tuple) -> None:
-        print(conn, addr)
+        pass
 
     def destroy(self) -> None:
         self.running = False
@@ -39,18 +39,21 @@ class SocketServer(com_base.BaseServer):
 
 class SocketClient(com_base.BaseClient):
     def __init__(self, app: any) -> None:
-        super().__init__()
-        self.app = app
+        super().__init__(app)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.sock.connect((app.config['socket_ip'], app.config['socket_port']))
         except Exception as _err:
             raise RuntimeError(str(_err))
+        self.running = False
+        self.run()
+
+    def run(self) -> None:
         self.running = True
 
     def destroy(self) -> None:
+        super().destroy()
         self.running = False
         if self.sock:
             self.sock.close()
             self.sock = None
-        self.app = None

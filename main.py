@@ -14,7 +14,8 @@ import backend_fmodex
 class App:
     def __init__(self, argv: any) -> None:
         self.exit_code = 1
-        self.argv = argv
+        self.first_arg = argv[0]
+        self.argv = argv[1:]
         self.is_le = sys.byteorder == 'little'
         self.cwd = os.path.dirname(__file__) or os.getcwd()
         self.paths = [self.cwd] + (os.getenv('LD_LIBRARY_PATH') or '').split(';') + (os.getenv('PATH') or '').split(';')
@@ -33,16 +34,18 @@ class App:
         self.config = self.read_json(self.config_path)
         try:
             if self.config['com_type'] == 'tcp':
-                self.server = com_socket.SocketServer(self)
+                self.server: com_base.BaseServer = com_socket.SocketServer(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
-            self.is_server = True
         except RuntimeError:
             if self.config['com_type'] == 'tcp':
-                self.client = com_socket.SocketClient(self)
+                self.client: com_base.BaseClient = com_socket.SocketClient(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
-            self.is_server = False
+            self.client.run()
+            self.client.destroy()
+            self.exit_code = 0
+            return
         if self.config['audio_backend'] == 'sdl2':
             self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
             self.bk: backend_base.BaseBackend = backend_sdl2.SDL2Backend(
@@ -62,7 +65,7 @@ class App:
         if self.volume > 1.0:
             raise RuntimeError(f'Volume {self.volume} is bigger than 1.0')
         self.full_list = []
-        for arg in self.argv[1:]:
+        for arg in self.argv:
             ext = arg.split('.')[-1].lower()
             if ext not in self.config['formats']:
                 continue
@@ -136,10 +139,9 @@ class App:
         self.current_music = mus
 
     def cleanup(self) -> None:
-        if self.is_server:
-            if self.server:
-                self.server.destroy()
-                self.server = None
+        if self.server:
+            self.server.destroy()
+            self.server = None
         if self.current_music:
             self.current_music.stop()
             self.current_music.destroy()
