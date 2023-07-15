@@ -105,6 +105,7 @@ class App:
     def track_loop(self) -> None:
         while self.running and self.current_music and self.current_music.is_playing():
             self.server.update()
+            self.poll_commands()
             self.bk.update()
 
     def next_track(self) -> any:
@@ -143,6 +144,22 @@ class App:
         mus.set_volume(self.volume)
         self.current_music = mus
 
+    def poll_commands(self) -> None:
+        temp_mus = []
+        while self.server.commands:
+            cmds = self.server.commands.pop(0)
+            for _cmd in cmds.split(';'):
+                cmd = _cmd.strip()
+                if os.path.isfile(cmd):
+                    temp_mus.append(cmd)
+                    continue
+                log.info('Executing', cmd)
+                if cmd == 'next':
+                    if self.current_music:
+                        self.current_music.stop()
+                elif cmd == 'exit':
+                    self.running = False
+
     def cleanup(self) -> None:
         if self.server:
             self.server.destroy()
@@ -157,7 +174,7 @@ class App:
         while msg:
             try:
                 self.client.send(msg)
-                if msg == 'disconnect':
+                if msg == 'disconnect' or msg == 'exit':
                     self.exit_code = 0
                     return
             except RuntimeError:

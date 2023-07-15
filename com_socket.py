@@ -30,9 +30,9 @@ class SocketServer(com_base.BaseServer):
             except OSError:
                 break
             self.clients.append(conn)
-            threading.Thread(target=self.client_thread, args=(conn, addr)).start()
+            threading.Thread(target=self.client_thread, args=(conn, )).start()
 
-    def client_thread(self, conn: socket.socket, addr: tuple) -> None:
+    def client_thread(self, conn: socket.socket) -> None:
         should_exit = True
         while self.running:
             try:
@@ -44,16 +44,19 @@ class SocketServer(com_base.BaseServer):
             except OSError:
                 return
             msg = self.decode_msg(encoded_msg)
-            log.info(msg)
-            if msg == 'i_want_to_live_please_do\'nt_die':
-                should_exit = False
             if should_exit:
+                if msg == 'i_want_to_live_please_do\'nt_die':
+                    should_exit = False
+                    continue
+                self.commands.append(msg)
                 conn.close()
                 self.clients.remove(conn)
                 return
             if msg == 'disconnect':
                 conn.close()
                 self.clients.remove(conn)
+                return
+            self.commands.append(msg)
 
     def destroy(self) -> None:
         for conn in self.clients:

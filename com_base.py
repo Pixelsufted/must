@@ -1,6 +1,6 @@
 class BaseServer:
     def __init__(self) -> None:
-        pass
+        self.commands = []
 
     def update(self) -> None:
         pass
