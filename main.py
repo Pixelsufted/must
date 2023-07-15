@@ -42,7 +42,6 @@ class App:
                 self.client: com_base.BaseClient = com_socket.SocketClient(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
-            self.client.run()
             self.client.destroy()
             self.exit_code = 0
             return
