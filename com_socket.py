@@ -16,33 +16,12 @@ class SocketServer(com_base.BaseServer):
             raise RuntimeError('Failed to create socket')
         # self.sock.setblocking(False)
         self.clients = []
-        self.should_die_clients = []
         self.sock.listen()
         self.running = True
         threading.Thread(target=self.accept_clients).start()
 
     def update(self) -> None:
-        if self.clients:
-            log.info(len(self.clients))
-        for i in range(len(self.clients)):
-            conn = self.clients[i]
-            msg_len_buf = conn.recv(10)
-            if not msg_len_buf:
-                continue
-            msg_len = int.from_bytes(msg_len_buf, 'little', signed=False)
-            encoded_msg = conn.recv(msg_len)
-            msg = self.decode_msg(encoded_msg)
-            if self.should_die_clients[i]:
-                if msg == 'do_not_die_please':
-                    self.should_die_clients[i] = False
-                conn.close()
-                del self.clients[i]
-                del self.should_die_clients[i]
-            elif msg == 'disconnect':
-                conn.close()
-                del self.clients[i]
-                del self.should_die_clients[i]
-            log.info(msg)
+        pass
 
     def accept_clients(self) -> None:
         while self.running and self.sock:
@@ -51,13 +30,35 @@ class SocketServer(com_base.BaseServer):
             except OSError:
                 break
             self.clients.append(conn)
-            self.should_die_clients.append(True)
-            # threading.Thread(target=self.client_thread, args=(conn, addr)).start()
+            threading.Thread(target=self.client_thread, args=(conn, addr)).start()
 
-    def client_thread(self, conn: socket.socket) -> None:
-        conn.close()
+    def client_thread(self, conn: socket.socket, addr: tuple) -> None:
+        should_exit = True
+        while self.running:
+            try:
+                msg_len_buf = conn.recv(10)
+                if not msg_len_buf:
+                    continue
+                msg_len = int.from_bytes(msg_len_buf, 'little', signed=False)
+                encoded_msg = conn.recv(msg_len)
+            except OSError:
+                return
+            msg = self.decode_msg(encoded_msg)
+            log.info(msg)
+            if msg == 'i_want_to_live_please_do\'nt_die':
+                should_exit = False
+            if should_exit:
+                conn.close()
+                self.clients.remove(conn)
+                return
+            if msg == 'disconnect':
+                conn.close()
+                self.clients.remove(conn)
 
     def destroy(self) -> None:
+        for conn in self.clients:
+            conn.close()
+        self.clients.clear()
         self.running = False
         if self.sock:
             self.sock.close()
@@ -75,6 +76,8 @@ class SocketClient(com_base.BaseClient):
             raise RuntimeError(str(_err))
 
     def send(self, msg: str) -> None:
+        if not msg:
+            return
         encoded_msg = com_base.BaseServer.encode_msg(msg)
         self.sock.send(int.to_bytes(len(encoded_msg), 10, 'little', signed=False) + encoded_msg)
 

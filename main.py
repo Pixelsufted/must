@@ -46,7 +46,16 @@ class App:
                 self.client.send(';'.join(self.argv))
                 # self.client.send('disconnect')
             else:
-                raise NotImplemented('TODO: command line')
+                msg = 'i_want_to_live_please_do\'nt_die'
+                while msg:
+                    try:
+                        self.client.send(msg)
+                        if msg == 'disconnect':
+                            break
+                    except OSError:
+                        self.exit_code = 1
+                        return
+                    msg = input('>>> ')
             self.client.destroy()
             self.exit_code = 0
             return
