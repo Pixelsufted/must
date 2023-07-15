@@ -41,7 +41,11 @@ class SocketClient(com_base.BaseClient):
     def __init__(self, app: any) -> None:
         super().__init__()
         self.app = app
-        self.sock = None
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.sock.connect((app.config['socket_ip'], app.config['socket_port']))
+        except Exception as _err:
+            raise RuntimeError(str(_err))
         self.running = True
 
     def destroy(self) -> None:

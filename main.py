@@ -39,7 +39,7 @@ class App:
             self.is_server = True
         except RuntimeError:
             if self.config['com_type'] == 'tcp':
-                self.client = com_socket.SocketClient()
+                self.client = com_socket.SocketClient(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
             self.is_server = False
