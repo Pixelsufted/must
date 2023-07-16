@@ -9,6 +9,7 @@ class FmodExWrapper(backend_base.BaseWrapper):
         self.lib = fmod_lib
         if not self.lib:
             raise FileNotFoundError('Failed to load FmodEx library')
+        # TODO: prettify
         # - Errors -
         self.FMOD_OK = 0
         self.FMOD_ERR_BADCOMMAND = 1
@@ -320,23 +321,23 @@ class FmodExWrapper(backend_base.BaseWrapper):
             'winsonic': self.FMOD_OUTPUT_TYPE_WIN_SONIC
         }
         self.FMOD_System_Create = self.wrap('FMOD_System_Create', args=(ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint))
-        self.FMOD_System_Release = self.wrap('FMOD_System_Release', args=(ctypes.c_void_p, ))
+        self.FMOD_System_Release = self.wrap('FMOD_System_Release', args=(ctypes.c_void_p,))
         self.FMOD_System_Init = self.wrap('FMOD_System_Init', args=(
             ctypes.c_void_p, ctypes.c_int, ctypes.c_uint, ctypes.c_void_p
         ))
         self.FMOD_System_GetVersion = self.wrap(
             'FMOD_System_GetVersion', args=(ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint))
         )
-        self.FMOD_System_Close = self.wrap('FMOD_System_Close', args=(ctypes.c_void_p, ))
+        self.FMOD_System_Close = self.wrap('FMOD_System_Close', args=(ctypes.c_void_p,))
         self.FMOD_System_CreateStream = self.wrap('FMOD_System_CreateStream', args=(
             ctypes.c_void_p, ctypes.c_char_p, ctypes.c_uint, ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)
         ))
-        self.FMOD_Sound_Release = self.wrap('FMOD_Sound_Release', args=(ctypes.c_void_p, ))
+        self.FMOD_Sound_Release = self.wrap('FMOD_Sound_Release', args=(ctypes.c_void_p,))
         self.FMOD_System_PlaySound = self.wrap('FMOD_System_PlaySound', args=(
             ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_void_p)
         ))
-        self.FMOD_System_Update = self.wrap('FMOD_System_Update', args=(ctypes.c_void_p, ))
-        self.FMOD_Channel_Stop = self.wrap('FMOD_Channel_Stop', args=(ctypes.c_void_p, ))
+        self.FMOD_System_Update = self.wrap('FMOD_System_Update', args=(ctypes.c_void_p,))
+        self.FMOD_Channel_Stop = self.wrap('FMOD_Channel_Stop', args=(ctypes.c_void_p,))
         self.FMOD_Channel_SetPaused = self.wrap('FMOD_Channel_SetPaused', args=(ctypes.c_void_p, ctypes.c_int))
         self.FMOD_Channel_SetVolume = self.wrap('FMOD_Channel_SetVolume', args=(ctypes.c_void_p, ctypes.c_float))
         self.FMOD_Channel_SetPitch = self.wrap('FMOD_Channel_SetPitch', args=(ctypes.c_void_p, ctypes.c_float))
@@ -501,7 +502,7 @@ class FmodExBackend(backend_base.BaseBackend):
                     break
         self.check_result_err(res, 'Failed to create system')
         ver_buf = ctypes.c_uint()
-        if self.fmod.FMOD_System_GetVersion(self.sys, ver_buf) == self.fmod.FMOD_OK\
+        if self.fmod.FMOD_System_GetVersion(self.sys, ver_buf) == self.fmod.FMOD_OK \
                 and not ver_buf.value == self.header_version:
             log.warn(f'Incorrect FmodEx version configured. Please change it to {hex(ver_buf.value)} in config')
         self.check_result_err(self.fmod.FMOD_System_Init(
@@ -546,7 +547,10 @@ class FmodExBackend(backend_base.BaseBackend):
         return []
 
     def get_current_audio_driver(self) -> str:
-        return ''
+        output_buf = ctypes.c_int(0)
+        self.check_result_warn(self.fmod.FMOD_System_GetOutput(self.sys, output_buf))
+        r_map = {x: k for k, x in self.fmod.output_map.items()}
+        return r_map.get(output_buf.value) or 'none'
 
     def update(self) -> None:
         self.check_result_warn(self.fmod.FMOD_System_Update(self.sys), 'Failed to update system')

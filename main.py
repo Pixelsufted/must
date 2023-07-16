@@ -78,7 +78,7 @@ class App:
             )
         else:
             raise FileNotFoundError('Unknown audio backend')
-        self.bk.init()
+        self.bk.init()  # TODO: init until success
         self.volume = self.config['volume']
         self.speed = self.config['speed']
         if self.volume > 1.0:
