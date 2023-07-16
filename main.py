@@ -225,6 +225,22 @@ class App:
                     self.current_music.set_pos(need_pos)
                     got_pos = self.current_music.get_pos()
                     log.info('New Position:', self.format_time(got_pos))
+                elif cmd.startswith('pos_rel'):
+                    if not self.current_music or not self.current_music.length:
+                        continue
+                    try:
+                        new_pos = float(cmd.split(' ')[-1])
+                    except (ValueError, IndexError) as _err:
+                        log.warn(f'Could not convert position value:', _err)
+                        continue
+                    if cmd.startswith('pos_rel '):
+                        cur_pos = 0.0
+                    else:
+                        cur_pos = self.current_music.get_pos() / self.current_music.length
+                    need_pos = max(min(cur_pos + new_pos, 100.0), 0.0)
+                    self.current_music.set_pos(need_pos * self.current_music.length)
+                    got_pos = self.current_music.get_pos()
+                    log.info('New Position:', self.format_time(got_pos))
                 elif cmd.startswith('volume'):
                     try:
                         new_volume = float(cmd.split(' ')[-1])
