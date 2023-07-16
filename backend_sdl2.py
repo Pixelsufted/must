@@ -243,14 +243,23 @@ class SDL2Backend(backend_base.BaseBackend):
                 if not self.app.config['channels']:
                     self.app.config['channels'] = int.from_bytes(spec_buf[6], 'little', signed=True)  # noqa
                     log.warn('Please set channels in config to', self.app.config['channels'])
-        if self.mix.Mix_OpenAudioDevice(
-            self.app.config['freq'],
-            self.sdl.SDL_AUDIO_F32SYS if self.app.config['use_float32'] else self.sdl.SDL_AUDIO_S16SYS,
-            self.app.config['channels'],
-            self.app.config['chunk_size'],
-            self.app.stb(self.app.config['device_name']) or None,
-            self.sdl.SDL_AUDIO_ALLOW_ANY_CHANGE
-        ) < 0:
+        if self.mix.Mix_OpenAudioDevice:
+            result = self.mix.Mix_OpenAudioDevice(
+                self.app.config['freq'],
+                self.sdl.SDL_AUDIO_F32SYS if self.app.config['use_float32'] else self.sdl.SDL_AUDIO_S16SYS,
+                self.app.config['channels'],
+                self.app.config['chunk_size'],
+                self.app.stb(self.app.config['device_name']) or None,
+                self.sdl.SDL_AUDIO_ALLOW_ANY_CHANGE
+            )
+        else:
+            result = self.mix.Mix_OpenAudio(
+                self.app.config['freq'],
+                self.sdl.SDL_AUDIO_F32SYS if self.app.config['use_float32'] else self.sdl.SDL_AUDIO_S16SYS,
+                self.app.config['channels'],
+                self.app.config['chunk_size']
+            )
+        if result < 0:
             raise RuntimeError(f'Failed to open audio device ({self.app.bts(self.sdl.SDL_GetError())})')
         self.mix.Mix_AllocateChannels(0)
 
