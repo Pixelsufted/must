@@ -20,11 +20,13 @@ class App:
         self.cwd = os.path.dirname(__file__) or os.getcwd()
         self.encoding = 'utf-8'
         if sys.platform == 'win32':
+            self.sig_kill = 0
             self.paths = [self.cwd] + (os.getenv('PATH') or '').split(';')
             self.auto_postfix = ''
             self.auto_prefix = ''
             self.load_library = ctypes.windll.LoadLibrary
         else:
+            self.sig_kill = 9
             self.auto_postfix = '.so'
             self.auto_prefix = 'lib'
             self.load_library = ctypes.CDLL
@@ -105,13 +107,17 @@ class App:
             return
         self.running = True
         self.default_track_id = -1
-        self.main_loop()
+        self.should_kill = not sys.platform == 'win32' and hasattr(self.server, 'sock')
+        try:
+            self.main_loop()
+        except KeyboardInterrupt:
+            self.should_kill = True
         self.cleanup()
         self.bk.quit()
         self.bk.destroy()
         self.exit_code = 0
-        if not sys.platform == 'win32' and hasattr(self.server, 'sock'):
-            os.kill(os.getpid(), 9)  # FIXME
+        if self.should_kill:
+            os.kill(os.getpid(), self.sig_kill)  # FIXME
 
     def track_loop(self) -> None:
         while self.running and self.current_music and self.current_music.is_playing():
