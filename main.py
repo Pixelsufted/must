@@ -13,6 +13,7 @@ import backend_fmodex
 
 
 class App:
+    # TODO: add author info, device info
     def __init__(self, argv: any) -> None:
         self.exit_code = 1
         self.first_arg = argv[0]
