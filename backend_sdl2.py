@@ -151,6 +151,13 @@ class SDL2Music(backend_base.BaseMusic):
         if self.mix.Mix_SetMusicPosition(pos) < 0:
             log.warn(f'Failed to set music position ({self.app.bts(self.sdl.SDL_GetError())})')
 
+    def get_pos(self) -> float:
+        pos = self.mix.Mix_GetMusicPosition(self.mus)
+        if pos <= 0:
+            pos = 0.0
+            log.warn(f'Failed to get music position ({self.app.bts(self.sdl.SDL_GetError())})')
+        return pos
+
     def stop(self) -> None:
         self.mix.Mix_HaltMusic()
 

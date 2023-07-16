@@ -146,6 +146,11 @@ class App:
                 return None
         return None
 
+    @staticmethod
+    def format_time(need_time: float) -> str:
+        sec_str = str(round(need_time) % 60)
+        return str(int(need_time / 60)) + ':' + ('0' if len(sec_str) <= 1 else '') + sec_str
+
     def main_loop(self) -> None:
         while self.running:
             mus: backend_base.BaseMusic = self.next_track()
@@ -155,8 +160,7 @@ class App:
             stat = os.stat(mus.fp)
             info = f'{os.path.splitext(mus.fn)[0]}'
             if mus.length:
-                sec_str = str(round(mus.length) % 60)
-                info += f' [{int(mus.length / 60)}:{("0" if len(sec_str) <= 1 else "") + sec_str}]'
+                info += f' [{self.format_time(mus.length)}]'
             if mus.freq:
                 info += f' [{int(mus.freq)}Hz]'
             if not mus.type == 'none':
@@ -202,6 +206,9 @@ class App:
                     if self.current_music:
                         self.current_music.stop()
                     # log.info('Temp music list cleared')
+                elif cmd == 'show_pos':
+                    if self.current_music:
+                        log.info(f'Music Position: {self.format_time(self.current_music.get_pos())}')
                 elif cmd.startswith('volume'):
                     try:
                         new_volume = float(cmd.split(' ')[-1])
