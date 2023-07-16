@@ -316,6 +316,12 @@ class FmodExWrapper(backend_base.BaseWrapper):
         self.FMOD_Sound_GetLength = self.wrap('FMOD_Sound_GetLength', args=(
             ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint), ctypes.c_uint
         ))
+        self.FMOD_Channel_GetPosition = self.wrap('FMOD_Channel_GetPosition', args=(
+            ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint), ctypes.c_uint
+        ))
+        self.FMOD_Channel_SetPosition = self.wrap('FMOD_Channel_SetPosition', args=(
+            ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint
+        ))
         self.FMOD_Sound_GetFormat = self.wrap('FMOD_Sound_GetFormat', args=(
             ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
             ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int)
@@ -380,7 +386,7 @@ class FmodExMusic(backend_base.BaseMusic):
         self.bk.check_result_warn(res, 'Failed to set channel paused')
 
     def rewind(self) -> None:
-        pass
+        self.set_pos(0.0)
 
     def set_volume(self, volume: float = 1.0) -> None:
         res = self.fmod.FMOD_Channel_SetVolume(self.ch, volume)
@@ -395,6 +401,20 @@ class FmodExMusic(backend_base.BaseMusic):
         if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
             return
         self.bk.check_result_warn(res, 'Failed to set channel speed')
+
+    def set_pos(self, pos: float) -> None:
+        res = self.fmod.FMOD_Channel_SetPosition(self.ch, int(pos * 1000), self.fmod.FMOD_TIMEUNIT_MS)
+        if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
+            return
+        self.bk.check_result_warn(res, 'Failed to set channel position')
+
+    def get_pos(self) -> float:
+        pos_buf = ctypes.c_uint(0)
+        res = self.fmod.FMOD_Channel_GetPosition(self.ch, pos_buf, self.fmod.FMOD_TIMEUNIT_MS)
+        if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
+            return 0.0
+        self.bk.check_result_warn(res, 'Failed to get channel position')
+        return pos_buf.value / 1000
 
     def destroy(self) -> None:
         if not self.fmod:
