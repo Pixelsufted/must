@@ -36,16 +36,12 @@ class App:
             )
         self.config = self.read_json(self.config_path)
         try:
+            if '--client-only' in self.argv:
+                raise RuntimeError('Client Only!')
             if self.config['com_type'] == 'tcp':
                 self.server: com_base.BaseServer = com_socket.SocketServer(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
-            if '--client-only' in self.argv:
-                self.server.destroy()
-                self.server = None
-                self.exit_code = 0
-                os.kill(os.getpid(), 9)
-                return
         except RuntimeError:
             if self.config['com_type'] == 'tcp':
                 self.client: com_base.BaseClient = com_socket.SocketClient(self)
@@ -171,7 +167,9 @@ class App:
                     if self.current_music:
                         self.current_music.paused = not self.current_music.paused
                         self.current_music.set_paused(self.current_music.paused)
-                        log.info('Paused: ', self.current_music.paused)
+                        log.info('Paused:', self.current_music.paused)
+                elif cmd == '--client-only':
+                    pass
                 elif cmd.startswith('volume'):
                     try:
                         new_volume = float(cmd.split(' ')[-1])
