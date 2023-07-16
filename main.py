@@ -206,7 +206,7 @@ class App:
 
     def client_prompt(self) -> None:
         msg = 'i_want_to_live_please_do\'nt_die'
-        while msg:
+        while msg is not None:
             try:
                 self.client.send(msg)
                 if msg == 'disconnect' or msg == 'exit' or msg == 'quit':
