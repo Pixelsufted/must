@@ -96,6 +96,7 @@ class App:
         self.current_music: base_backend.BaseMusic = None # noqa
         self.running = True
         self.default_track_id = -1
+        self.next_is_switch_to_main = False
         self.should_kill = not sys.platform == 'win32' and hasattr(self.server, 'sock')
         try:
             self.main_loop()
@@ -119,11 +120,14 @@ class App:
         if self.temp_list:
             fp = self.temp_list.pop(0)  # Only default and random pick modes currently
             if not self.temp_list:
-                log.info('Selected the latest track from temp playlist')
+                self.next_is_switch_to_main = True
             try:
                 return self.bk.open_music(fp)
             except RuntimeError:
                 return None
+        if self.next_is_switch_to_main:
+            self.next_is_switch_to_main = False
+            log.info('Switched back to main list')
         if self.config['main_playlist_mode'] == 'default':
             self.default_track_id += 1
             if self.default_track_id >= len(self.full_list):
@@ -182,7 +186,7 @@ class App:
                     self.temp_list.clear()
                     if self.current_music:
                         self.current_music.stop()
-                    log.info('Temp music list cleared')
+                    # log.info('Temp music list cleared')
                 elif cmd.startswith('volume'):
                     try:
                         new_volume = float(cmd.split(' ')[-1])
