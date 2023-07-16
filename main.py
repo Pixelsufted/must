@@ -81,6 +81,7 @@ class App:
         if self.volume > 1.0:
             raise RuntimeError(f'Volume {self.volume} is bigger than 1.0')
         self.full_list = []
+        self.temp_list = []
         for arg in self.argv:
             ext = arg.split('.')[-1].lower()
             if ext not in self.config['formats']:
@@ -127,6 +128,14 @@ class App:
 
     def next_track(self) -> any:
         # TODO: maybe allow to change mode in real time?
+        if self.temp_list:
+            fp = self.temp_list.pop(0)  # Only default and random pick modes currently
+            if not self.temp_list:
+                log.info('Selected the latest track from temp playlist')
+            try:
+                return self.bk.open_music(fp)
+            except RuntimeError:
+                return None
         if self.config['main_playlist_mode'] == 'default':
             self.default_track_id += 1
             if self.default_track_id >= len(self.full_list):
@@ -210,7 +219,15 @@ class App:
                 else:
                     log.warn('Unknown Command', cmd)
         if temp_mus:
-            log.warn('TODO', temp_mus)
+            self.temp_list = temp_mus
+            self.temp_list_prepare()
+            log.info('Playing Temp Playlist')
+            if self.current_music:
+                self.current_music.stop()
+
+    def temp_list_prepare(self) -> None:
+        if self.config['temp_playlist_mode'] == 'random_choice':  # Trick
+            random.shuffle(self.temp_list)
 
     def cleanup(self) -> None:
         if self.server:
