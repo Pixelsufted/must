@@ -18,12 +18,15 @@ class App:
         self.argv = argv[1:]
         self.is_le = sys.byteorder == 'little'
         self.cwd = os.path.dirname(__file__) or os.getcwd()
-        self.paths = [self.cwd] + (os.getenv('LD_LIBRARY_PATH') or '').split(';') + (os.getenv('PATH') or '').split(';')
+        self.paths = [self.cwd] + (os.getenv('LD_LIBRARY_PATH') or '').replace(';', ':').split(':')\
+             + (os.getenv('PATH') or '').replace(';', ':').split(':')
         self.encoding = 'utf-8'
         if sys.platform == 'win32':
+            self.auto_postfix = ''
             self.auto_prefix = ''
             self.load_library = ctypes.windll.LoadLibrary
         else:
+            self.auto_postfix = '.so'
             self.auto_prefix = 'lib'
             self.load_library = ctypes.CDLL
         self.config_path = os.path.join(self.cwd, 'config.json')
@@ -238,15 +241,17 @@ class App:
                 if result.get(lib):
                     continue
                 try:
-                    result[lib] = self.load_library(os.path.join(path, prefix + lib))
-                except FileNotFoundError:
+                    result[lib] = self.load_library(
+                        os.path.join(path, prefix + lib) + self.auto_postfix
+                    )
+                except (FileNotFoundError, OSError):
                     continue
         for lib in libs:
             if result.get(lib):
                 continue
             try:
-                result[lib] = self.load_library(prefix + lib)
-            except FileNotFoundError:
+                result[lib] = self.load_library(prefix + lib + self.auto_postfix)
+            except (FileNotFoundError, OSError):
                 continue
         return result
 
