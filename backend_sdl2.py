@@ -35,7 +35,6 @@ class SDL2Wrapper(backend_base.BaseWrapper):
         self.SDL_GetVersion(ver_buf)
         self.ver = (int.from_bytes(ver_buf[0], 'little'), int.from_bytes(ver_buf[1], 'little'),
                     int.from_bytes(ver_buf[2], 'little'))
-        self.ver = (2, 0, 0)  # FIXME
         self.SDL_AudioInit = self.wrap('SDL_AudioInit', args=(ctypes.c_char_p, ), res=ctypes.c_int)
         self.SDL_AudioQuit = self.wrap('SDL_AudioQuit')
         self.SDL_GetError = self.wrap('SDL_GetError', res=ctypes.c_char_p)
@@ -103,7 +102,6 @@ class SDL2MixWrapper(backend_base.BaseWrapper):
         }
         self.Mix_Linked_Version = self.wrap('Mix_Linked_Version', res=ctypes.POINTER(ctypes.c_uint8 * 3))
         self.ver = tuple(self.Mix_Linked_Version().contents[0:3])
-        self.ver = (2, 0, 0)  # FIXME
         self.Mix_Init = self.wrap('Mix_Init', args=(ctypes.c_int, ), res=ctypes.c_int)
         self.Mix_Quit = self.wrap('Mix_Quit')
         if self.ver[1] > 0 or self.ver[2] >= 2:
@@ -175,11 +173,13 @@ class SDL2Music(backend_base.BaseMusic):
     def set_pos(self, pos: float) -> None:
         if self.mix.Mix_SetMusicPosition(pos) < 0:
             log.warn(f'Failed to set music position ({self.app.bts(self.sdl.SDL_GetError())})')
+        elif not self.mix.Mix_GetMusicPosition:
+            self.play_time_start = self.sdl.SDL_GetTicks() - int(pos * 1000)
 
     def get_pos(self) -> float:
         if not self.mix.Mix_GetMusicPosition:
             if self.paused:
-                (self.sdl.SDL_GetTicks() - self.pause_time_start) / 1000
+                return (self.pause_time_start - self.play_time_start) / 1000
             return (self.sdl.SDL_GetTicks() - self.play_time_start) / 1000
         pos = self.mix.Mix_GetMusicPosition(self.mus)
         if pos <= 0:
@@ -208,6 +208,8 @@ class SDL2Music(backend_base.BaseMusic):
         if not self.is_playing():
             return
         self.mix.Mix_RewindMusic()
+        if not self.mix.Mix_GetMusicPosition:
+            self.play_time_start = self.sdl.SDL_GetTicks()
 
     def set_volume(self, volume: float = 1.0) -> None:
         self.mix.Mix_VolumeMusic(int(volume * self.sdl.SDL_MIX_MAX_VOLUME))
