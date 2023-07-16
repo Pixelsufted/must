@@ -107,6 +107,8 @@ class App:
         self.bk.quit()
         self.bk.destroy()
         self.exit_code = 0
+        if not sys.platform == 'win32':
+            os.kill(os.getpid(), 9)  # FIXME
 
     def track_loop(self) -> None:
         while self.running and self.current_music and self.current_music.is_playing():
