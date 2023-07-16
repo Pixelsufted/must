@@ -152,8 +152,14 @@ class App:
             while not mus:
                 mus = self.next_track()
             stat = os.stat(mus.fp)
-            log.info(f'{os.path.splitext(mus.fn)[0]} [{mus.type.upper()}]'
-                     f' [{str(datetime.datetime.fromtimestamp(int(stat.st_mtime)))}]')
+            info = f'{os.path.splitext(mus.fn)[0]}'
+            if mus.length:
+                info += f' [{int(mus.length / 60)}:{round(mus.length) % 60}]'
+            if not mus.type == 'none':
+                info += f' [{mus.type.upper()}]'
+            if stat.st_mtime:
+                info += f' [{str(datetime.datetime.fromtimestamp(int(stat.st_mtime)))}]'
+            log.info(info)
             self.play_new_music(mus)
             self.track_loop()
 

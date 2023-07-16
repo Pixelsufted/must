@@ -137,6 +137,10 @@ class SDL2Music(backend_base.BaseMusic):
         self.mix = mix
         self.mus = mus
         self.type = self.mix.type_map.get(self.mix.Mix_GetMusicType(self.mus)) or 'none'
+        self.length = self.mix.Mix_MusicDuration(self.mus)
+        if self.length <= 0:
+            self.length = 0.0
+            log.warn(f'Failed to get music length ({self.app.bts(self.sdl.SDL_GetError())})')
 
     def play(self) -> None:
         result = self.mix.Mix_PlayMusic(self.mus, 0)
