@@ -1,6 +1,6 @@
-import ctypes
 import sys
-
+import ctypes
+import subprocess
 import backend_base
 import log
 
@@ -162,6 +162,14 @@ class SDL2Music(backend_base.BaseMusic):
             if self.length <= 0:
                 self.length = 0.0
                 log.warn(f'Failed to get music length ({self.app.bts(self.sdl.SDL_GetError())})')
+        elif self.app.config['allow_ffmpeg']:
+            try:
+                result = subprocess.check_output([
+                    'ffprobe', '-i', self.fp, '-show_entries', 'format=duration', '-v', 'quiet'
+                ], shell=False, encoding=self.app.encoding)
+            except Exception as _err:
+                raise RuntimeError(str(_err))
+            self.length = float(result.split('\n')[1].split('=')[-1])
 
     def play(self) -> None:
         result = self.mix.Mix_PlayMusic(self.mus, 0)
