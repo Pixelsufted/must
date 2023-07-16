@@ -154,11 +154,15 @@ class App:
         return str(int(need_time / 60)) + ':' + ('0' if len(sec_str) <= 1 else '') + sec_str
 
     def main_loop(self) -> None:
+        pause_first = self.config['pause_first']
         while self.running:
             mus: backend_base.BaseMusic = self.next_track()
             while not mus:
                 mus = self.next_track()
             self.play_new_music(mus)
+            if pause_first:
+                mus.set_paused(True)
+                pause_first = False
             stat = os.stat(mus.fp)
             info = f'{os.path.splitext(mus.fn)[0]}'
             if mus.length:
