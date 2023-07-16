@@ -40,6 +40,12 @@ class App:
                 self.server: com_base.BaseServer = com_socket.SocketServer(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
+            if '--client-only' in self.argv:
+                self.server.destroy()
+                self.server = None
+                self.exit_code = 0
+                os.kill(os.getpid(), 9)
+                return
         except RuntimeError:
             if self.config['com_type'] == 'tcp':
                 self.client: com_base.BaseClient = com_socket.SocketClient(self)
