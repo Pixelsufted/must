@@ -150,7 +150,7 @@ class App:
             mus: backend_base.BaseMusic = self.next_track()
             while not mus:
                 mus = self.next_track()
-            log.info(f'{os.path.splitext(mus.fn)[0]}')
+            log.info(f'{os.path.splitext(mus.fn)[0]} [{mus.type.upper()}]')
             self.play_new_music(mus)
             self.track_loop()
 
@@ -175,9 +175,12 @@ class App:
                 if cmd == 'next':
                     if self.current_music:
                         self.current_music.stop()
-                elif cmd == 'toggle_pause':
+                elif cmd in ('toggle_pause', 'pause', 'resume'):
                     if self.current_music:
-                        self.current_music.paused = not self.current_music.paused
+                        if cmd == 'toggle_pause':
+                            self.current_music.paused = not self.current_music.paused
+                        else:
+                            self.current_music.paused = cmd == 'pause'
                         self.current_music.set_paused(self.current_music.paused)
                         log.info('Paused:', self.current_music.paused)
                 elif cmd == '--client-only' or cmd == '--server-only':
