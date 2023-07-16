@@ -39,8 +39,10 @@ class SDL2Wrapper(backend_base.BaseWrapper):
         self.SDL_AudioQuit = self.wrap('SDL_AudioQuit')
         self.SDL_GetError = self.wrap('SDL_GetError', res=ctypes.c_char_p)
         self.SDL_GetRevision = self.wrap('SDL_GetRevision', res=ctypes.c_char_p)
-        # TODO: check version (at least 2.0.18) for this one
-        self.SDL_GetTicks64 = self.wrap('SDL_GetTicks64', res=ctypes.c_uint64)
+        if self.ver[0] >= 2 and (self.ver[1] > 0 or self.ver[2] >= 18):
+            self.SDL_GetTicks = self.wrap('SDL_GetTicks64', res=ctypes.c_uint64)
+        else:
+            self.SDL_GetTicks = self.wrap('SDL_GetTicks', res=ctypes.c_uint64)
         self.SDL_GetNumAudioDrivers = self.wrap('SDL_GetNumAudioDrivers', res=ctypes.c_int)
         self.SDL_GetAudioDriver = self.wrap('SDL_GetAudioDriver', args=(ctypes.c_int, ), res=ctypes.c_char_p)
         self.SDL_GetCurrentAudioDriver = self.wrap('SDL_GetCurrentAudioDriver', res=ctypes.c_char_p)
