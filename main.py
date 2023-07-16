@@ -178,6 +178,11 @@ class App:
                         log.info('Paused:', self.current_music.paused)
                 elif cmd == '--client-only' or cmd == '--server-only':
                     pass
+                elif cmd == 'clear_temp':
+                    self.temp_list.clear()
+                    if self.current_music:
+                        self.current_music.stop()
+                    log.info('Temp music list cleared')
                 elif cmd.startswith('volume'):
                     try:
                         new_volume = float(cmd.split(' ')[-1])
@@ -214,6 +219,8 @@ class App:
                 self.current_music.stop()
 
     def temp_list_prepare(self) -> None:
+        if self.config['main_playlist_mode'] == 'default' and self.temp_list[-1] in self.full_list:
+            self.default_track_id = self.full_list.index(self.temp_list[-1]) + 1
         if self.config['temp_playlist_mode'] == 'random_choice':  # Trick
             random.shuffle(self.temp_list)
 
