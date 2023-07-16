@@ -482,6 +482,7 @@ class FmodExMusic(backend_base.BaseMusic):
 
 
 class FmodExBackend(backend_base.BaseBackend):
+    # TODO: support device settings, getting drivers, etc.
     def __init__(self, app: any, libs: dict) -> None:
         super().__init__()
         self.app = app
