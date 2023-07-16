@@ -46,9 +46,12 @@ class SDL2Wrapper(backend_base.BaseWrapper):
         self.SDL_GetNumAudioDrivers = self.wrap('SDL_GetNumAudioDrivers', res=ctypes.c_int)
         self.SDL_GetAudioDriver = self.wrap('SDL_GetAudioDriver', args=(ctypes.c_int, ), res=ctypes.c_char_p)
         self.SDL_GetCurrentAudioDriver = self.wrap('SDL_GetCurrentAudioDriver', res=ctypes.c_char_p)
-        self.SDL_GetDefaultAudioInfo = self.wrap('SDL_GetDefaultAudioInfo', args=(
-            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int
-        ), res=ctypes.c_int)
+        if self.ver[0] >= 2 and (self.ver[1] > 0 or self.ver[2] >= 16):
+            self.SDL_GetDefaultAudioInfo = self.wrap('SDL_GetDefaultAudioInfo', args=(
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int
+            ), res=ctypes.c_int)
+        else:
+            self.SDL_GetDefaultAudioInfo = None
 
 
 class SDL2MixWrapper(backend_base.BaseWrapper):
@@ -99,13 +102,14 @@ class SDL2MixWrapper(backend_base.BaseWrapper):
         }
         self.Mix_Linked_Version = self.wrap('Mix_Linked_Version', res=ctypes.POINTER(ctypes.c_uint8 * 3))
         self.ver = tuple(self.Mix_Linked_Version().contents[0:3])
-        if self.ver[0] < 2 or self.ver[1] < 6:
-            raise RuntimeError(f'At least SDL2_mixer 2.6.0 is requires, found {self.ver}')
         self.Mix_Init = self.wrap('Mix_Init', args=(ctypes.c_int, ), res=ctypes.c_int)
         self.Mix_Quit = self.wrap('Mix_Quit')
-        self.Mix_OpenAudioDevice = self.wrap('Mix_OpenAudioDevice', args=(
-            ctypes.c_int, ctypes.c_uint16, ctypes.c_int, ctypes.c_int, ctypes.c_char_p, ctypes.c_int
-        ), res=ctypes.c_int)
+        if self.ver[0] >= 2 and (self.ver[1] >= 0 or self.ver[2] >= 2):
+            self.Mix_OpenAudioDevice = self.wrap('Mix_OpenAudioDevice', args=(
+                ctypes.c_int, ctypes.c_uint16, ctypes.c_int, ctypes.c_int, ctypes.c_char_p, ctypes.c_int
+            ), res=ctypes.c_int)
+        else:
+            self.Mix_OpenAudioDevice = None
         self.Mix_CloseAudio = self.wrap('Mix_CloseAudio')
         self.Mix_QuerySpec = self.wrap('Mix_QuerySpec', args=(
             ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_uint16), ctypes.POINTER(ctypes.c_int)
@@ -223,14 +227,15 @@ class SDL2Backend(backend_base.BaseBackend):
             log.warn(f'Failed to init some SDL2_mixer formats ({self.app.bts(self.sdl.SDL_GetError())})')
         if not self.app.config['freq'] or not self.app.config['channels']:
             spec_buf = ctypes.c_buffer(32)
-            if self.sdl.SDL_GetDefaultAudioInfo(None, spec_buf, 0):
-                raise RuntimeError(f'Failed to get default device info ({self.app.bts(self.sdl.SDL_GetError())})')
-            if not self.app.config['freq']:
-                self.app.config['freq'] = int.from_bytes(spec_buf[:4], sys.byteorder, signed=True)  # noqa
-                log.warn('Please set frequency in config to', self.app.config['freq'])
-            if not self.app.config['channels']:
-                self.app.config['channels'] = int.from_bytes(spec_buf[6], 'little', signed=True)  # noqa
-                log.warn('Please set channels in config to', self.app.config['channels'])
+            if not self.sdl.SDL_GetDefaultAudioInfo or self.sdl.SDL_GetDefaultAudioInfo(None, spec_buf, 0):
+                log.warn(f'Failed to get default device info ({self.app.bts(self.sdl.SDL_GetError())})')
+            else:
+                if not self.app.config['freq']:
+                    self.app.config['freq'] = int.from_bytes(spec_buf[:4], sys.byteorder, signed=True)  # noqa
+                    log.warn('Please set frequency in config to', self.app.config['freq'])
+                if not self.app.config['channels']:
+                    self.app.config['channels'] = int.from_bytes(spec_buf[6], 'little', signed=True)  # noqa
+                    log.warn('Please set channels in config to', self.app.config['channels'])
         if self.mix.Mix_OpenAudioDevice(
             self.app.config['freq'],
             self.sdl.SDL_AUDIO_F32SYS if self.app.config['use_float32'] else self.sdl.SDL_AUDIO_S16SYS,
