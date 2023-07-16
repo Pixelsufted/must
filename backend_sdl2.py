@@ -117,7 +117,7 @@ class SDL2MixWrapper(backend_base.BaseWrapper):
         self.Mix_FadeOutMusic = self.wrap('Mix_FadeOutMusic', args=(ctypes.c_int, ), res=ctypes.c_int)
         self.Mix_SetMusicPosition = self.wrap('Mix_SetMusicPosition', args=(ctypes.c_double, ), res=ctypes.c_int)
         # These two require at least 2.6.0. What we can do?
-        self.Mix_SetMusicPosition = self.wrap('Mix_GetMusicPosition', args=(ctypes.c_void_p, ), res=ctypes.c_double)
+        self.Mix_GetMusicPosition = self.wrap('Mix_GetMusicPosition', args=(ctypes.c_void_p, ), res=ctypes.c_double)
         self.Mix_MusicDuration = self.wrap('Mix_MusicDuration', args=(ctypes.c_void_p, ), res=ctypes.c_double)
         self.Mix_PlayingMusic = self.wrap('Mix_PlayingMusic', res=ctypes.c_int)
         self.Mix_PausedMusic = self.wrap('Mix_PausedMusic', res=ctypes.c_int)
@@ -146,6 +146,10 @@ class SDL2Music(backend_base.BaseMusic):
         result = self.mix.Mix_PlayMusic(self.mus, 0)
         if result < 0:
             log.warn(f'Failed to play music ({self.app.bts(self.sdl.SDL_GetError())})')
+
+    def set_pos(self, pos: float) -> None:
+        if self.mix.Mix_SetMusicPosition(pos) < 0:
+            log.warn(f'Failed to set music position ({self.app.bts(self.sdl.SDL_GetError())})')
 
     def stop(self) -> None:
         self.mix.Mix_HaltMusic()

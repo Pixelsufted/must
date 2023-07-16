@@ -155,7 +155,8 @@ class App:
             stat = os.stat(mus.fp)
             info = f'{os.path.splitext(mus.fn)[0]}'
             if mus.length:
-                info += f' [{int(mus.length / 60)}:{round(mus.length) % 60}]'
+                sec_str = str(round(mus.length) % 60)
+                info += f' [{int(mus.length / 60)}:{("0" if len(sec_str) <= 1 else "") + sec_str}]'
             if mus.freq:
                 info += f' [{int(mus.freq)}Hz]'
             if not mus.type == 'none':

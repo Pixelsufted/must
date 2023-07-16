@@ -45,6 +45,12 @@ class BaseMusic:
     def set_speed(self, speed: float = 1.0) -> None:
         pass
 
+    def set_pos(self, pos: float) -> None:
+        pass
+
+    def get_pos(self) -> float:
+        pass
+
     def destroy(self) -> None:
         pass
 
