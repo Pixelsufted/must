@@ -160,7 +160,7 @@ class App:
             cmds = self.server.commands.pop(0)
             for _cmd in cmds.split(';'):
                 cmd = _cmd.strip()
-                if os.path.isfile(cmd):
+                if os.path.isfile(cmd) and cmd.split('.')[-1].lower() in self.config['formats']:
                     temp_mus.append(cmd)
                     continue
                 if cmd == 'next':
@@ -201,6 +201,8 @@ class App:
                     self.running = False
                 else:
                     log.warn('Unknown Command', cmd)
+        if temp_mus:
+            log.warn('TODO', temp_mus)
 
     def cleanup(self) -> None:
         if self.server:
