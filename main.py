@@ -156,6 +156,8 @@ class App:
             info = f'{os.path.splitext(mus.fn)[0]}'
             if mus.length:
                 info += f' [{int(mus.length / 60)}:{round(mus.length) % 60}]'
+            if mus.freq:
+                info += f' [{int(mus.freq)}Hz]'
             if not mus.type == 'none':
                 info += f' [{mus.type.upper()}]'
             if stat.st_mtime:
