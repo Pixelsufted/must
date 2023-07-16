@@ -94,18 +94,6 @@ class App:
                     continue
                 self.full_list.append(os.path.join(self.config['music_path'], fn))
         self.current_music: base_backend.BaseMusic = None # noqa
-        if os.getenv('TEST_MUSIC'):
-            self.mus = self.bk.open_music('E:\\Music\\Mittsies - Vitality (V3 Remix).mp3')
-            self.mus.play()
-            self.mus.set_volume(self.volume)
-            while self.mus.is_playing():
-                self.bk.update()
-            self.mus.destroy()
-            self.cleanup()
-            self.bk.quit()
-            self.bk.destroy()
-            self.exit_code = 0
-            return
         self.running = True
         self.default_track_id = -1
         self.should_kill = not sys.platform == 'win32' and hasattr(self.server, 'sock')
