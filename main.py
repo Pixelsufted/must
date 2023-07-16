@@ -44,6 +44,8 @@ class App:
             else:
                 raise FileNotFoundError('Unknown communication type')
         except RuntimeError:
+            if '--server-only' in self.argv:
+                raise RuntimeError('Server Only!')
             if self.config['com_type'] == 'tcp':
                 self.client: com_base.BaseClient = com_socket.SocketClient(self)
             else:
@@ -171,7 +173,7 @@ class App:
                         self.current_music.paused = not self.current_music.paused
                         self.current_music.set_paused(self.current_music.paused)
                         log.info('Paused:', self.current_music.paused)
-                elif cmd == '--client-only':
+                elif cmd == '--client-only' or cmd == '--server-only':
                     pass
                 elif cmd.startswith('volume'):
                     try:
