@@ -343,10 +343,12 @@ class FmodExMusic(backend_base.BaseMusic):
         self.mus = mus
         self.ch = ctypes.c_void_p()
         type_buf = ctypes.c_int(0)
+        bits_buf = ctypes.c_int(0)
         self.bk.check_result_warn(
-            self.fmod.FMOD_Sound_GetFormat(self.mus, type_buf, None, None, None), 'Failed to get sound info'
+            self.fmod.FMOD_Sound_GetFormat(self.mus, type_buf, None, None, bits_buf), 'Failed to get sound info'
         )
         self.type = self.fmod.format_map.get(type_buf.value) or 'none'
+        self.bits = bits_buf.value
         length_buf = ctypes.c_uint(0)
         self.bk.check_result_warn(
             self.fmod.FMOD_Sound_GetLength(self.mus, length_buf, self.fmod.FMOD_TIMEUNIT_MS),

@@ -25,6 +25,7 @@ class BaseMusic:
         self.type = 'none'
         self.paused = False
         self.freq = 0.0
+        self.bits = 0.0
         self.length = 0.0
         self.pitch = 1.0
 
