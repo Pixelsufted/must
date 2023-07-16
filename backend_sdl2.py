@@ -155,10 +155,11 @@ class SDL2Music(backend_base.BaseMusic):
         self.mix = mix
         self.mus = mus
         self.type = self.mix.type_map.get(self.mix.Mix_GetMusicType(self.mus)) or 'none'
-        self.length = self.mix.Mix_MusicDuration(self.mus)
-        if self.length <= 0:
-            self.length = 0.0
-            log.warn(f'Failed to get music length ({self.app.bts(self.sdl.SDL_GetError())})')
+        if self.mix.Mix_MusicDuration:
+            self.length = self.mix.Mix_MusicDuration(self.mus)
+            if self.length <= 0:
+                self.length = 0.0
+                log.warn(f'Failed to get music length ({self.app.bts(self.sdl.SDL_GetError())})')
 
     def play(self) -> None:
         result = self.mix.Mix_PlayMusic(self.mus, 0)
@@ -170,6 +171,8 @@ class SDL2Music(backend_base.BaseMusic):
             log.warn(f'Failed to set music position ({self.app.bts(self.sdl.SDL_GetError())})')
 
     def get_pos(self) -> float:
+        if not self.mix.Mix_GetMusicPosition:
+            return 0.0
         pos = self.mix.Mix_GetMusicPosition(self.mus)
         if pos <= 0:
             pos = 0.0
