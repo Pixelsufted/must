@@ -47,7 +47,7 @@ class App:
                 self.client: com_base.BaseClient = com_socket.SocketClient(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
-            if self.argv:
+            if self.argv and not (len(self.argv) <= 1 and self.argv[0] == '--client-only'):
                 self.client.send(';'.join(self.argv))
                 self.exit_code = 0
                 # self.client.send('disconnect')
