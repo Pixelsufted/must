@@ -39,14 +39,14 @@ class SDL2Wrapper(backend_base.BaseWrapper):
         self.SDL_AudioQuit = self.wrap('SDL_AudioQuit')
         self.SDL_GetError = self.wrap('SDL_GetError', res=ctypes.c_char_p)
         self.SDL_GetRevision = self.wrap('SDL_GetRevision', res=ctypes.c_char_p)
-        if self.ver[0] >= 2 and (self.ver[1] > 0 or self.ver[2] >= 18):
+        if self.ver[1] > 0 or self.ver[2] >= 18:
             self.SDL_GetTicks = self.wrap('SDL_GetTicks64', res=ctypes.c_uint64)
         else:
             self.SDL_GetTicks = self.wrap('SDL_GetTicks', res=ctypes.c_uint64)
         self.SDL_GetNumAudioDrivers = self.wrap('SDL_GetNumAudioDrivers', res=ctypes.c_int)
         self.SDL_GetAudioDriver = self.wrap('SDL_GetAudioDriver', args=(ctypes.c_int, ), res=ctypes.c_char_p)
         self.SDL_GetCurrentAudioDriver = self.wrap('SDL_GetCurrentAudioDriver', res=ctypes.c_char_p)
-        if self.ver[0] >= 2 and (self.ver[1] > 0 or self.ver[2] >= 16):
+        if self.ver[1] > 0 or self.ver[2] >= 16:
             self.SDL_GetDefaultAudioInfo = self.wrap('SDL_GetDefaultAudioInfo', args=(
                 ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int
             ), res=ctypes.c_int)
@@ -104,11 +104,15 @@ class SDL2MixWrapper(backend_base.BaseWrapper):
         self.ver = tuple(self.Mix_Linked_Version().contents[0:3])
         self.Mix_Init = self.wrap('Mix_Init', args=(ctypes.c_int, ), res=ctypes.c_int)
         self.Mix_Quit = self.wrap('Mix_Quit')
-        if self.ver[0] >= 2 and (self.ver[1] >= 0 or self.ver[2] >= 2):
+        if self.ver[1] > 0 or self.ver[2] >= 2:
+            self.Mix_OpenAudio = None
             self.Mix_OpenAudioDevice = self.wrap('Mix_OpenAudioDevice', args=(
                 ctypes.c_int, ctypes.c_uint16, ctypes.c_int, ctypes.c_int, ctypes.c_char_p, ctypes.c_int
             ), res=ctypes.c_int)
         else:
+            self.Mix_OpenAudio = self.wrap('Mix_OpenAudio', args=(
+                ctypes.c_int, ctypes.c_uint16, ctypes.c_int, ctypes.c_int
+            ), res=ctypes.c_int)
             self.Mix_OpenAudioDevice = None
         self.Mix_CloseAudio = self.wrap('Mix_CloseAudio')
         self.Mix_QuerySpec = self.wrap('Mix_QuerySpec', args=(
@@ -127,9 +131,12 @@ class SDL2MixWrapper(backend_base.BaseWrapper):
         ), res=ctypes.c_int)
         self.Mix_FadeOutMusic = self.wrap('Mix_FadeOutMusic', args=(ctypes.c_int, ), res=ctypes.c_int)
         self.Mix_SetMusicPosition = self.wrap('Mix_SetMusicPosition', args=(ctypes.c_double, ), res=ctypes.c_int)
-        # These two require at least 2.6.0. What we can do?
-        self.Mix_GetMusicPosition = self.wrap('Mix_GetMusicPosition', args=(ctypes.c_void_p, ), res=ctypes.c_double)
-        self.Mix_MusicDuration = self.wrap('Mix_MusicDuration', args=(ctypes.c_void_p, ), res=ctypes.c_double)
+        if self.ver[1] >= 6:
+            self.Mix_GetMusicPosition = self.wrap('Mix_GetMusicPosition', args=(ctypes.c_void_p, ), res=ctypes.c_double)
+            self.Mix_MusicDuration = self.wrap('Mix_MusicDuration', args=(ctypes.c_void_p, ), res=ctypes.c_double)
+        else:
+            self.Mix_GetMusicPosition = None
+            self.Mix_MusicDuration = None
         self.Mix_PlayingMusic = self.wrap('Mix_PlayingMusic', res=ctypes.c_int)
         self.Mix_PausedMusic = self.wrap('Mix_PausedMusic', res=ctypes.c_int)
         self.Mix_FadingMusic = self.wrap('Mix_FadingMusic', res=ctypes.c_int)
