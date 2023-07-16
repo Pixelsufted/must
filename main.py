@@ -1,5 +1,6 @@
 import os
 import sys
+import datetime
 import json
 import random
 import ctypes
@@ -150,7 +151,9 @@ class App:
             mus: backend_base.BaseMusic = self.next_track()
             while not mus:
                 mus = self.next_track()
-            log.info(f'{os.path.splitext(mus.fn)[0]} [{mus.type.upper()}]')
+            stat = os.stat(mus.fp)
+            log.info(f'{os.path.splitext(mus.fn)[0]} [{mus.type.upper()}]'
+                     f' [{str(datetime.datetime.fromtimestamp(int(stat.st_mtime)))}]')
             self.play_new_music(mus)
             self.track_loop()
 
