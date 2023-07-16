@@ -1,3 +1,4 @@
+import sys
 import ctypes
 import backend_base
 import log
@@ -544,7 +545,16 @@ class FmodExBackend(backend_base.BaseBackend):
         raise RuntimeError(f'{error_msg} ({(self.fmod.error_map.get(result) or "Unknown error.")[:-1]})')
 
     def get_audio_drivers(self) -> list:
-        return []
+        result = []
+        if sys.platform == 'win32':
+            result.append('wasapi')
+            result.append('asio')
+        else:
+            result.append('pulseaudio')
+            result.append('alsa')
+        result.append('disk')
+        result.append('dummy')
+        return result
 
     def get_current_audio_driver(self) -> str:
         output_buf = ctypes.c_int(0)
