@@ -170,6 +170,14 @@ class App:
             if stat.st_mtime:
                 info += f' [{str(datetime.datetime.fromtimestamp(int(stat.st_mtime)))}]'
             log.info(info)
+            if self.config['print_json']:
+                output = {
+                    'text': f'{os.path.splitext(mus.fn)[0]}',
+                    'class': 'custom-mediaplayer',
+                    'alt': 'mediaplayer'
+                }
+                sys.stdout.write(json.dumps(output) + '\n')
+                sys.stdout.flush()
             self.track_loop()
 
     def play_new_music(self, mus: backend_base.BaseMusic) -> None:
