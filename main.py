@@ -225,7 +225,7 @@ class App:
     def temp_list_prepare(self) -> None:
         if self.config['main_playlist_mode'] == 'default' and self.temp_list[-1] in self.full_list:
             self.default_track_id = self.full_list.index(self.temp_list[-1]) + 1
-        if self.config['temp_playlist_mode'] == 'random_choice':  # Trick
+        if self.config['temp_playlist_mode'] == 'random_pick':  # Trick
             random.shuffle(self.temp_list)
 
     def cleanup(self) -> None:
