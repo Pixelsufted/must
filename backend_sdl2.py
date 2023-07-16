@@ -201,7 +201,7 @@ class SDL2Backend(backend_base.BaseBackend):
             log.warn(f'Failed to init some SDL2_mixer formats ({self.app.bts(self.sdl.SDL_GetError())})')
         if self.mix.Mix_OpenAudioDevice(
             self.app.config['freq'],
-            self.sdl.SDL_AUDIO_F32SYS,
+            self.sdl.SDL_AUDIO_F32SYS if self.app.config['use_float32'] else self.sdl.SDL_AUDIO_S16SYS,
             self.app.config['channels'],
             self.app.config['chunk_size'],
             self.app.stb(self.app.config['device_name']) or None,

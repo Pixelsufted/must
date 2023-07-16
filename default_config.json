@@ -5,6 +5,7 @@
   "com_type": "tcp",
   "socket_ip": "127.0.0.1",
   "socket_port": 8101,
+  "use_float32": true,
   "freq": 41000,
   "channels": 2,
   "chunk_size": 2048,
