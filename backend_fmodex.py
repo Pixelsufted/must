@@ -283,6 +283,42 @@ class FmodExWrapper(backend_base.BaseWrapper):
         self.FMOD_TIMEUNIT_MOD_ORDER = 0x00000100
         self.FMOD_TIMEUNIT_MOD_ROW = 0x00000200
         self.FMOD_TIMEUNIT_MOD_PATTERN = 0x00000400
+        # - Output Types -
+        self.FMOD_OUTPUT_TYPE_AUTODETECT = 0
+        self.FMOD_OUTPUT_TYPE_UNKNOWN = 1
+        self.FMOD_OUTPUT_TYPE_NO_SOUND = 2
+        self.FMOD_OUTPUT_TYPE_WAV_WRITER = 3
+        self.FMOD_OUTPUT_TYPE_NO_SOUND_NRT = 4
+        self.FMOD_OUTPUT_TYPE_WAV_WRITER_NRT = 5
+        self.FMOD_OUTPUT_TYPE_WASAPI = 6
+        self.FMOD_OUTPUT_TYPE_ASIO = 7
+        self.FMOD_OUTPUT_TYPE_PULSEAUDIO = 8
+        self.FMOD_OUTPUT_TYPE_ALSA = 9
+        self.FMOD_OUTPUT_TYPE_CORE_AUDIO = 10
+        self.FMOD_OUTPUT_TYPE_AUDIOTRACK = 11
+        self.FMOD_OUTPUT_TYPE_OPENSL = 12
+        self.FMOD_OUTPUT_TYPE_AUDIO_OUT = 13
+        self.FMOD_OUTPUT_TYPE_AUDIO3D = 14
+        self.FMOD_OUTPUT_TYPE_WEB_AUDIO = 15
+        self.FMOD_OUTPUT_TYPE_NNAUDIO = 16
+        self.FMOD_OUTPUT_TYPE_WIN_SONIC = 17
+        self.FMOD_OUTPUT_TYPE_A_AUDIO = 18
+        self.FMOD_OUTPUT_TYPE_AUDIO_WORK_LET = 19
+        self.FMOD_OUTPUT_TYPE_PHASE = 20
+        self.output_map = {
+            '': self.FMOD_OUTPUT_TYPE_AUTODETECT,
+            'auto': self.FMOD_OUTPUT_TYPE_AUTODETECT,
+            'dummy': self.FMOD_OUTPUT_TYPE_NO_SOUND,
+            'disk': self.FMOD_OUTPUT_TYPE_WAV_WRITER,
+            'wasapi': self.FMOD_OUTPUT_TYPE_WASAPI,
+            'asio': self.FMOD_OUTPUT_TYPE_ASIO,
+            'pulseaudio': self.FMOD_OUTPUT_TYPE_PULSEAUDIO,
+            'alsa': self.FMOD_OUTPUT_TYPE_ALSA,
+            'coreaudio': self.FMOD_OUTPUT_TYPE_CORE_AUDIO,
+            'opensl': self.FMOD_OUTPUT_TYPE_OPENSL,
+            'webaudio': self.FMOD_OUTPUT_TYPE_WEB_AUDIO,
+            'winsonic': self.FMOD_OUTPUT_TYPE_WIN_SONIC
+        }
         self.FMOD_System_Create = self.wrap('FMOD_System_Create', args=(ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint))
         self.FMOD_System_Release = self.wrap('FMOD_System_Release', args=(ctypes.c_void_p, ))
         self.FMOD_System_Init = self.wrap('FMOD_System_Init', args=(
@@ -326,6 +362,10 @@ class FmodExWrapper(backend_base.BaseWrapper):
         self.FMOD_Channel_SetPosition = self.wrap('FMOD_Channel_SetPosition', args=(
             ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint
         ))
+        self.FMOD_System_GetOutput = self.wrap('FMOD_System_GetOutput', args=(
+            ctypes.c_void_p, ctypes.POINTER(ctypes.c_int)
+        ))
+        self.FMOD_System_SetOutput = self.wrap('FMOD_System_SetOutput', args=(ctypes.c_void_p, ctypes.c_int))
         self.FMOD_Sound_GetFormat = self.wrap('FMOD_Sound_GetFormat', args=(
             ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
             ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int)
@@ -465,6 +505,10 @@ class FmodExBackend(backend_base.BaseBackend):
         self.check_result_err(self.fmod.FMOD_System_Init(
             self.sys, 1, self.fmod.FMOD_INIT_THREAD_UNSAFE, None
         ), 'Failed to init system')
+        if self.app.config['audio_driver']:
+            self.check_result_err(self.fmod.FMOD_System_SetOutput(
+                self.sys, self.fmod.output_map.get(self.app.config['audio_driver'])
+            ), 'Failed to set audio driver')
 
     def open_music(self, fp: str) -> FmodExMusic:
         mus = ctypes.c_void_p()
