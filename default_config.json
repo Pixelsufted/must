@@ -15,5 +15,5 @@
   "formats": ["wav", "mp3", "m4a", "ogg", "flac"],
   "music_path": "e:/music",
   "main_playlist_mode": "full_random",
-  "temp_playlist_mode": "random_pick"
+  "temp_playlist_mode": "default_pick"
 }
