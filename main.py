@@ -37,7 +37,7 @@ class App:
             )
         self.config = self.read_json(self.config_path)
         try:
-            if '--client-only' in self.argv:
+            if '--client-only' in self.argv or (self.config['need_server_arg'] and '--server-only' not in self.argv):
                 raise RuntimeError('Client Only!')
             if self.config['com_type'] == 'tcp':
                 self.server: com_base.BaseServer = com_socket.SocketServer(self)
