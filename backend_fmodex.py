@@ -274,6 +274,15 @@ class FmodExWrapper(backend_base.BaseWrapper):
         self.FMOD_IGNORE_TAGS = 0x02000000
         self.FMOD_LOW_MEM = 0x08000000
         self.FMOD_VIRTUAL_PLAY_FROM_START = 0x80000000
+        # - Time Units -
+        self.FMOD_TIMEUNIT_MS = 0x00000001
+        self.FMOD_TIMEUNIT_PCM = 0x00000002
+        self.FMOD_TIMEUNIT_PCM_BYTES = 0x00000004
+        self.FMOD_TIMEUNIT_RAW_BYTES = 0x00000008
+        self.FMOD_TIMEUNIT_PCM_FRACTION = 0x00000010
+        self.FMOD_TIMEUNIT_MOD_ORDER = 0x00000100
+        self.FMOD_TIMEUNIT_MOD_ROW = 0x00000200
+        self.FMOD_TIMEUNIT_MOD_PATTERN = 0x00000400
         self.FMOD_System_Create = self.wrap('FMOD_System_Create', args=(ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint))
         self.FMOD_System_Release = self.wrap('FMOD_System_Release', args=(ctypes.c_void_p, ))
         self.FMOD_System_Init = self.wrap('FMOD_System_Init', args=(
@@ -304,6 +313,9 @@ class FmodExWrapper(backend_base.BaseWrapper):
         self.FMOD_Sound_GetDefaults = self.wrap('FMOD_Sound_GetDefaults', args=(
             ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_int)
         ))
+        self.FMOD_Sound_GetLength = self.wrap('FMOD_Sound_GetLength', args=(
+            ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint), ctypes.c_uint
+        ))
         self.FMOD_Sound_GetFormat = self.wrap('FMOD_Sound_GetFormat', args=(
             ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
             ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int)
@@ -325,6 +337,12 @@ class FmodExMusic(backend_base.BaseMusic):
             self.fmod.FMOD_Sound_GetFormat(self.mus, type_buf, None, None, None), 'Failed to get sound info'
         )
         self.type = self.fmod.format_map.get(type_buf.value) or 'none'
+        length_buf = ctypes.c_uint(0)
+        self.bk.check_result_warn(
+            self.fmod.FMOD_Sound_GetLength(self.mus, length_buf, self.fmod.FMOD_TIMEUNIT_MS),
+            'Failed to get sound length'
+        )
+        self.length = length_buf.value / 1000
         # We don't need this in the current context
         '''freq_buf = ctypes.c_float(0.0)
         self.bk.check_result_warn(self.fmod.FMOD_Sound_GetDefaults(self.mus, freq_buf, None), 'Failed to get def info')

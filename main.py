@@ -67,7 +67,7 @@ class App:
             self.bk: backend_base.BaseBackend = backend_sdl2.SDL2Backend(
                 self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix)
             )
-        elif self.config['audio_backend'] == 'fmodex':
+        elif self.config['audio_backend'] == 'fmod':
             if sys.platform == 'win32':
                 self.search_libs('VCRUNTIME140_APP')
             self.search_libs('libfsbvorbis64')
@@ -151,6 +151,7 @@ class App:
             mus: backend_base.BaseMusic = self.next_track()
             while not mus:
                 mus = self.next_track()
+            self.play_new_music(mus)
             stat = os.stat(mus.fp)
             info = f'{os.path.splitext(mus.fn)[0]}'
             if mus.length:
@@ -160,7 +161,6 @@ class App:
             if stat.st_mtime:
                 info += f' [{str(datetime.datetime.fromtimestamp(int(stat.st_mtime)))}]'
             log.info(info)
-            self.play_new_music(mus)
             self.track_loop()
 
     def play_new_music(self, mus: backend_base.BaseMusic) -> None:
