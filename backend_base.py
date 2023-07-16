@@ -26,6 +26,7 @@ class BaseMusic:
         self.paused = False
         self.freq = 0.0
         self.length = 0.0
+        self.pitch = 1.0
 
     def play(self) -> None:
         pass
