@@ -40,6 +40,7 @@ class App:
                 os.path.join(self.cwd, 'config.json'), self.read_json(os.path.join(self.cwd, 'default_config.json'))
             )
         self.config = self.read_json(self.config_path)
+        log.enable_logging = self.config['allow_logging']
         try:
             if '--client-only' in self.argv or (self.config['need_server_arg'] and '--server-only' not in self.argv):
                 raise RuntimeError('Client Only!')
