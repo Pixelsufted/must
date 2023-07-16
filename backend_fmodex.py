@@ -435,6 +435,7 @@ class FmodExMusic(backend_base.BaseMusic):
         res = self.fmod.FMOD_Channel_SetPaused(self.ch, paused)
         if res == self.fmod.FMOD_ERR_INVALID_HANDLE:
             return
+        self.paused = paused
         self.bk.check_result_warn(res, 'Failed to set channel paused')
 
     def rewind(self) -> None:

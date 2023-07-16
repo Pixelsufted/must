@@ -194,10 +194,10 @@ class App:
                 elif cmd in ('toggle_pause', 'pause', 'resume'):
                     if self.current_music:
                         if cmd == 'toggle_pause':
-                            self.current_music.paused = not self.current_music.paused
+                            paused = not self.current_music.paused
                         else:
-                            self.current_music.paused = cmd == 'pause'
-                        self.current_music.set_paused(self.current_music.paused)
+                            paused = cmd == 'pause'
+                        self.current_music.set_paused(paused)
                         log.info('Paused:', self.current_music.paused)
                 elif cmd == '--client-only' or cmd == '--server-only':
                     pass
