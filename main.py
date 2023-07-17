@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import datetime
 import json
 import random
@@ -77,7 +78,18 @@ class App:
             )
         else:
             raise FileNotFoundError('Unknown audio backend')
-        self.bk.init()  # TODO: init until success
+        if self.config['force_try_init']:
+            for i in range(20):
+                try:
+                    self.bk.init()
+                    break
+                except RuntimeError as _err:
+                    if i == 19:
+                        raise _err
+                    time.sleep(0.25)
+                    continue
+        else:
+            self.bk.init()
         self.display_info()
         self.volume = self.config['volume']
         self.speed = self.config['speed']

@@ -17,6 +17,7 @@
   "allow_logging": true,
   "print_json": false,
   "pause_first": false,
+  "force_try_init": false,
   "formats": ["wav", "mp3", "m4a", "ogg", "flac"],
   "music_path": "e:/music",
   "main_playlist_mode": "full_random",
