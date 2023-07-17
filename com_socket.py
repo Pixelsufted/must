@@ -1,13 +1,12 @@
-import sys
 import socket
 import threading
-import log
 import com_base
 
 
 class SocketServer(com_base.BaseServer):
     def __init__(self, app: any) -> None:
         super().__init__()
+        self.should_kill = True
         self.app = app
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:

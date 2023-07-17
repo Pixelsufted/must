@@ -1,5 +1,6 @@
 class BaseServer:
     def __init__(self) -> None:
+        self.should_kill = False
         self.commands = []
 
     def update(self) -> None:

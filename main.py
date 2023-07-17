@@ -112,11 +112,11 @@ class App:
         self.running = True
         self.default_track_id = -1
         self.next_is_switch_to_main = False
-        self.should_kill = not sys.platform == 'win32' and hasattr(self.server, 'sock')
+        self.should_kill = not sys.platform == 'win32' and self.server.should_kill
         try:
             self.main_loop()
         except KeyboardInterrupt:
-            self.should_kill = True
+            self.should_kill = self.server.should_kill
         self.cleanup()
         self.bk.quit()
         self.bk.destroy()
