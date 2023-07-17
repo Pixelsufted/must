@@ -26,7 +26,7 @@ class WinMMMusic(backend_base.BaseMusic):
         self.type = os.path.splitext(fp)[-1][1:]
         try:
             self.length = float(bk.send_warn(f'status {self.al} length', 'Failed to get music length')) / 1000
-        except:
+        except ValueError:
             self.length = 0.0
 
     def play(self) -> None:
