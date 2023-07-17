@@ -10,6 +10,7 @@ import com_base
 import com_tcp
 import com_udp
 import backend_base
+import backend_winmm
 import backend_sdl2
 import backend_fmodex
 
@@ -81,6 +82,8 @@ class App:
             self.bk: backend_base.BaseBackend = backend_fmodex.FmodExBackend(
                 self, self.search_libs('opus', 'media_foundation', 'fsbank', 'fmod', prefix=self.auto_prefix)
             )
+        elif self.config['audio_backend'] == 'winmm' and sys.platform == 'win32':
+            self.bk: backend_base.BaseBackend = backend_winmm.WinMMBackend(self, ctypes.windll.winmm)
         else:
             raise FileNotFoundError('Unknown audio backend')
         if self.config['force_try_init']:
