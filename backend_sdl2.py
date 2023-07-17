@@ -46,6 +46,10 @@ class SDL2Wrapper(backend_base.BaseWrapper):
         self.SDL_GetNumAudioDrivers = self.wrap('SDL_GetNumAudioDrivers', res=ctypes.c_int)
         self.SDL_GetAudioDriver = self.wrap('SDL_GetAudioDriver', args=(ctypes.c_int, ), res=ctypes.c_char_p)
         self.SDL_GetCurrentAudioDriver = self.wrap('SDL_GetCurrentAudioDriver', res=ctypes.c_char_p)
+        self.SDL_GetNumAudioDevices = self.wrap('SDL_GetNumAudioDevices', args=(ctypes.c_int, ), res=ctypes.c_int)
+        self.SDL_GetAudioDeviceName = self.wrap(
+            'SDL_GetAudioDeviceName', args=(ctypes.c_int, ctypes.c_int), res=ctypes.c_char_p
+        )
         if self.ver[1] > 0 or self.ver[2] >= 16:
             self.SDL_GetDefaultAudioInfo = self.wrap('SDL_GetDefaultAudioInfo', args=(
                 ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int
@@ -164,7 +168,7 @@ class SDL2Music(backend_base.BaseMusic):
                 log.warn(f'Failed to get music length ({self.app.bts(self.sdl.SDL_GetError())})')
         elif self.app.config['allow_ffmpeg']:
             try:
-                result = subprocess.check_output([
+                result: str = subprocess.check_output([
                     'ffprobe', '-i', self.fp, '-show_entries', 'format=duration', '-v', 'quiet'
                 ], shell=False, encoding=self.app.encoding)
             except Exception as _err:
@@ -291,6 +295,25 @@ class SDL2Backend(backend_base.BaseBackend):
         if result < 0:
             raise RuntimeError(f'Failed to open audio device ({self.app.bts(self.sdl.SDL_GetError())})')
         self.mix.Mix_AllocateChannels(0)
+        # print(self.get_audio_devices_names())
+        # print(self.get_current_audio_device())
+
+    def get_audio_devices_names(self) -> list:
+        result = []
+        num = self.sdl.SDL_GetNumAudioDevices(0)
+        if num < 0:
+            num = 10
+            log.warn(f'Failed to get number of audio devices, forced to 10 ({self.app.bts(self.sdl.SDL_GetError())})')
+        for i in range(num):
+            dev_name_bt = self.sdl.SDL_GetAudioDeviceName(i, 0)
+            if dev_name_bt is None:
+                log.warn(f'Failed to get audio device name with id {i} ({self.app.bts(self.sdl.SDL_GetError())})')
+                result.append('')
+            result.append(self.app.bts(dev_name_bt))
+        return result
+
+    def get_current_audio_device(self) -> str:
+        return ''
 
     def open_music(self, fp: str) -> SDL2Music:
         mus = self.mix.Mix_LoadMUS(self.app.stb(fp))
