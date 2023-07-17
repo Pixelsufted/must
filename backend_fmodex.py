@@ -420,6 +420,18 @@ class FmodExWrapper(backend_base.BaseWrapper):
         self.FMOD_System_GetDriver = self.wrap(
             'FMOD_System_GetDriver', args=(ctypes.c_void_p, ctypes.POINTER(ctypes.c_int))
         )
+        self.FMOD_System_SetSoftwareChannels = self.wrap(
+            'FMOD_System_SetSoftwareChannels', args=(ctypes.c_void_p, ctypes.c_int)
+        )
+        self.FMOD_System_GetSoftwareChannels = self.wrap(
+            'FMOD_System_GetSoftwareChannels', args=(ctypes.c_void_p, ctypes.POINTER(ctypes.c_int))
+        )
+        self.FMOD_System_SetSoftwareFormat = self.wrap('FMOD_System_SetSoftwareFormat', args=(
+            ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int
+        ))
+        self.FMOD_System_GetSoftwareFormat = self.wrap('FMOD_System_GetSoftwareFormat', args=(
+            ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int)
+        ))
 
     def wrap(self, func_name: str, args: tuple = (), res: any = ctypes.c_int) -> any:
         return super().wrap(func_name=func_name, args=args, res=res)
@@ -533,7 +545,6 @@ class FmodExMusic(backend_base.BaseMusic):
 
 
 class FmodExBackend(backend_base.BaseBackend):
-    # TODO: support device settings, getting drivers, etc.
     def __init__(self, app: any, libs: dict) -> None:
         super().__init__()
         self.app = app
@@ -555,6 +566,21 @@ class FmodExBackend(backend_base.BaseBackend):
         if self.fmod.FMOD_System_GetVersion(self.sys, ver_buf) == self.fmod.FMOD_OK \
                 and not ver_buf.value == self.header_version:
             log.warn(f'Incorrect FmodEx version configured. Please change it to {hex(ver_buf.value)} in config')
+        freq_buf = ctypes.c_int(41000)
+        mode_buf = ctypes.c_int(0)
+        channels_buf = ctypes.c_int(1)
+        self.check_result_warn(self.fmod.FMOD_System_GetSoftwareFormat(
+            self.sys, freq_buf, mode_buf, channels_buf
+        ), 'Failed to get current audio device specs')
+        if not self.app.config['freq']:
+            self.app.config['freq'] = freq_buf.value
+            log.warn('Please set frequency in config to', freq_buf.value)
+        if not self.app.config['channels'] and channels_buf.value:
+            self.app.config['channels'] = channels_buf.value
+            log.warn('Please set channels in config to', channels_buf.value)
+        self.check_result_warn(self.fmod.FMOD_System_SetSoftwareFormat(
+            self.sys, self.app.config['freq'], mode_buf.value, self.app.config['channels']
+        ), 'Failed to set audio specs')
         self.check_result_err(self.fmod.FMOD_System_Init(
             self.sys, 1, self.fmod.FMOD_INIT_THREAD_UNSAFE, None
         ), 'Failed to init system')
