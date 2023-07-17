@@ -39,6 +39,7 @@ class SDL2Wrapper(backend_base.BaseWrapper):
         self.SDL_AudioQuit = self.wrap('SDL_AudioQuit')
         self.SDL_GetError = self.wrap('SDL_GetError', res=ctypes.c_char_p)
         self.SDL_GetRevision = self.wrap('SDL_GetRevision', res=ctypes.c_char_p)
+        self.SDL_free = self.wrap('SDL_free', args=(ctypes.c_void_p, ))
         if self.ver[1] > 0 or self.ver[2] >= 18:
             self.SDL_GetTicks = self.wrap('SDL_GetTicks64', res=ctypes.c_uint64)
         else:
@@ -52,7 +53,7 @@ class SDL2Wrapper(backend_base.BaseWrapper):
         )
         if self.ver[1] > 0 or self.ver[2] >= 16:
             self.SDL_GetDefaultAudioInfo = self.wrap('SDL_GetDefaultAudioInfo', args=(
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int
+                ctypes.POINTER(ctypes.c_char_p), ctypes.c_void_p, ctypes.c_int
             ), res=ctypes.c_int)
         else:
             self.SDL_GetDefaultAudioInfo = None
@@ -243,6 +244,7 @@ class SDL2Backend(backend_base.BaseBackend):
         self.app = app
         self.sdl = SDL2Wrapper(libs.get('SDL2'), app.is_le)
         self.mix = SDL2MixWrapper(libs.get('SDL2_mixer'))
+        self.default_device_name = ''
 
     def init(self) -> None:
         if self.sdl.SDL_AudioInit(self.app.stb(self.app.config['audio_driver']) or None) < 0:
@@ -265,11 +267,16 @@ class SDL2Backend(backend_base.BaseBackend):
             raise RuntimeError(f'Failed to init SDL2_mixer ({self.app.bts(self.sdl.SDL_GetError())})')
         elif not mix_flags == mix_init_flags:
             log.warn(f'Failed to init some SDL2_mixer formats ({self.app.bts(self.sdl.SDL_GetError())})')
-        if not self.app.config['freq'] or not self.app.config['channels']:
+        if (not self.app.config['freq'] or not self.app.config['channels'] or not self.app.config['device_name'])\
+                and self.sdl.SDL_GetDefaultAudioInfo:
+            name_buf = ctypes.c_char_p()
             spec_buf = ctypes.c_buffer(32)
-            if not self.sdl.SDL_GetDefaultAudioInfo or self.sdl.SDL_GetDefaultAudioInfo(None, spec_buf, 0):
+            if self.sdl.SDL_GetDefaultAudioInfo(name_buf, spec_buf, 0):
                 log.warn(f'Failed to get default device info ({self.app.bts(self.sdl.SDL_GetError())})')
             else:
+                if name_buf and name_buf.value:
+                    self.default_device_name = self.app.bts(name_buf.value)
+                    self.sdl.SDL_free(name_buf)
                 if not self.app.config['freq']:
                     self.app.config['freq'] = int.from_bytes(spec_buf[:4], sys.byteorder, signed=True)  # noqa
                     log.warn('Please set frequency in config to', self.app.config['freq'])
@@ -295,8 +302,6 @@ class SDL2Backend(backend_base.BaseBackend):
         if result < 0:
             raise RuntimeError(f'Failed to open audio device ({self.app.bts(self.sdl.SDL_GetError())})')
         self.mix.Mix_AllocateChannels(0)
-        # print(self.get_audio_devices_names())
-        # print(self.get_current_audio_device())
 
     def get_audio_devices_names(self) -> list:
         result = []
@@ -313,7 +318,7 @@ class SDL2Backend(backend_base.BaseBackend):
         return result
 
     def get_current_audio_device(self) -> str:
-        return ''
+        return self.app.config['device_name'].strip() or self.default_device_name
 
     def open_music(self, fp: str) -> SDL2Music:
         mus = self.mix.Mix_LoadMUS(self.app.stb(fp))
