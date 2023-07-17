@@ -52,6 +52,7 @@ class WinMMMusic(backend_base.BaseMusic):
 
     def set_pos(self, pos: float) -> None:
         self.bk.send_warn(f'seek {self.al} to {round(pos * 1000)}', 'Failed to set music position')
+        self.bk.send_warn(f'play {self.al}', 'Failed to play music')
 
     def get_pos(self) -> float:
         res = self.bk.send_warn(f'status {self.al} position', 'Failed to get music position')
