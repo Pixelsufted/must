@@ -56,6 +56,7 @@ class SocketServer(com_base.BaseServer):
                 self.clients.remove(conn)
                 return
             self.commands.append(msg)
+        # self.should_kill = False
 
     def destroy(self) -> None:
         for conn in self.clients:

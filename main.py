@@ -8,6 +8,7 @@ import ctypes
 import log
 import com_base
 import com_socket
+import com_udp
 import backend_base
 import backend_sdl2
 import backend_fmodex
@@ -46,6 +47,8 @@ class App:
                 raise RuntimeError('Client Only!')
             if self.config['com_type'] == 'tcp':
                 self.server: com_base.BaseServer = com_socket.SocketServer(self)
+            elif self.config['com_type'] == 'udp':
+                self.server: com_base.BaseServer = com_udp.UDPServer(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
         except RuntimeError:
@@ -53,6 +56,8 @@ class App:
                 raise RuntimeError('Server Only!')
             if self.config['com_type'] == 'tcp':
                 self.client: com_base.BaseClient = com_socket.SocketClient(self)
+            elif self.config['com_type'] == 'udp':
+                self.client: com_base.BaseClient = com_udp.UDPClient(self)
             else:
                 raise FileNotFoundError('Unknown communication type')
             if self.argv and not (len(self.argv) <= 1 and self.argv[0] == '--client-only'):
@@ -112,9 +117,9 @@ class App:
         self.running = True
         self.default_track_id = -1
         self.next_is_switch_to_main = False
-        self.should_kill = not sys.platform == 'win32' and self.server.should_kill
         try:
             self.main_loop()
+            self.should_kill = not sys.platform == 'win32' and self.server.should_kill
         except KeyboardInterrupt:
             self.should_kill = self.server.should_kill
         self.cleanup()

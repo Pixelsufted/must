@@ -6,6 +6,7 @@ I made it mostly for myself because there is no foobar2000 on linux
  - FmodEx
 ## Supported Communication Backends
  - TCP Sockets via threading.Thread
+ - UDP Sockets (Single-Threaded) via threading.Thread
 ## How does it work?
 It has simple structure, so you can easily modify the code for your need,
 for example, I've added [Waybar](https://github.com/Alexays/Waybar) support in the code via `print_json` var in config. <br />
