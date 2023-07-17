@@ -23,6 +23,11 @@ class WinMMMusic(backend_base.BaseMusic):
         super().__init__(fp)
         self.bk = bk
         self.al = alias
+        self.type = os.path.splitext(fp)[-1][1:]
+        try:
+            self.length = float(bk.send_warn(f'status {self.al} length', 'Failed to get music length')) / 1000
+        except:
+            self.length = 0.0
 
     def play(self) -> None:
         self.bk.send_warn(f'play {self.al}', 'Failed to play music')
@@ -44,6 +49,16 @@ class WinMMMusic(backend_base.BaseMusic):
             return
         self.paused = paused
         self.bk.send_warn(('pause ' if paused else 'resume ') + self.al, 'Failed to set music paused')
+
+    def set_pos(self, pos: float) -> None:
+        self.bk.send_warn(f'seek {self.al} to {round(pos * 1000)}', 'Failed to set music position')
+
+    def get_pos(self) -> float:
+        res = self.bk.send_warn(f'status {self.al} position', 'Failed to get music position')
+        try:
+            return float(res) / 1000
+        except ValueError:
+            return 0.0
 
     def rewind(self) -> None:
         self.set_pos(0.0)
