@@ -409,6 +409,17 @@ class FmodExWrapper(backend_base.BaseWrapper):
             ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
             ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int)
         ))
+        self.FMOD_System_GetNumDrivers = self.wrap(
+            'FMOD_System_GetNumDrivers', args=(ctypes.c_void_p, ctypes.POINTER(ctypes.c_int))
+        )
+        self.FMOD_System_GetDriverInfo = self.wrap('FMOD_System_GetDriverInfo', args=(
+            ctypes.c_void_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_void_p, ctypes.POINTER(ctypes.c_int),
+            ctypes.c_void_p, ctypes.POINTER(ctypes.c_int)
+        ))
+        self.FMOD_System_SetDriver = self.wrap('FMOD_System_SetDriver', args=(ctypes.c_void_p, ctypes.c_int))
+        self.FMOD_System_GetDriver = self.wrap(
+            'FMOD_System_GetDriver', args=(ctypes.c_void_p, ctypes.POINTER(ctypes.c_int))
+        )
 
     def wrap(self, func_name: str, args: tuple = (), res: any = ctypes.c_int) -> any:
         return super().wrap(func_name=func_name, args=args, res=res)
@@ -529,6 +540,8 @@ class FmodExBackend(backend_base.BaseBackend):
         self.header_version = eval(app.config['fmod_version'])
         self.sys = ctypes.c_void_p()
         self.fmod = FmodExWrapper(libs.get('fmod'))
+        self.device_names = []
+        self.current_device_name = ''
 
     def init(self) -> None:
         res = self.fmod.FMOD_System_Create(self.sys, self.header_version)
@@ -549,6 +562,40 @@ class FmodExBackend(backend_base.BaseBackend):
             self.check_result_err(self.fmod.FMOD_System_SetOutput(
                 self.sys, self.fmod.output_map.get(self.app.config['audio_driver'])
             ), 'Failed to set audio driver')
+        num_buf = ctypes.c_int(10)
+        self.check_result_warn(
+            self.fmod.FMOD_System_GetNumDrivers(self.sys, num_buf), 'Failed to get audio devices number'
+        )
+        for i in range(num_buf.value):
+            name_buf = ctypes.c_char_p(b' ' * 1024)
+            self.check_result_warn(self.fmod.FMOD_System_GetDriverInfo(
+                self.sys, i, name_buf, 1024, None, None, None, None
+            ), 'Failed to get device info')
+            if name_buf.value and name_buf.value.strip():
+                self.device_names.append(self.app.bts(name_buf.value.strip()))
+            else:
+                self.device_names.append('')
+        if self.app.config['device_name'].strip():
+            if self.app.config['device_name'] in self.device_names:
+                self.check_result_warn(self.fmod.FMOD_System_SetDriver(
+                    self.sys, self.device_names.index(self.app.config['device_name'])
+                ), 'Failed to set audio device')
+            else:
+                log.warn(f'Device "{self.app.config["device_name"]}" is not in devices list!')
+        driver_buf = ctypes.c_int(0)
+        self.check_result_warn(self.fmod.FMOD_System_GetDriver(
+            self.sys, driver_buf
+        ), 'Failed to get current audio device')
+        try:
+            self.current_device_name = self.device_names[driver_buf.value]
+        except IndexError:
+            self.current_device_name = ''
+
+    def get_audio_devices_names(self) -> list:
+        return self.device_names
+
+    def get_current_audio_device(self) -> str:
+        return self.current_device_name
 
     def open_music(self, fp: str) -> FmodExMusic:
         mus = ctypes.c_void_p()
