@@ -318,7 +318,7 @@ class SDL2Backend(backend_base.BaseBackend):
             result.append(self.app.bts(dev_name_bt))
         return result
 
-    def get_current_audio_device(self) -> str:
+    def get_current_audio_device_name(self) -> str:
         return self.app.config['device_name'].strip() or self.default_device_name
 
     def open_music(self, fp: str) -> SDL2Music:

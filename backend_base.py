@@ -76,7 +76,7 @@ class BaseBackend:
     def get_audio_devices_names(self) -> list:
         pass
 
-    def get_current_audio_device(self) -> str:
+    def get_current_audio_device_name(self) -> str:
         pass
 
     def get_audio_drivers(self) -> list:

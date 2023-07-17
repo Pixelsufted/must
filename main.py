@@ -79,6 +79,7 @@ class App:
         else:
             raise FileNotFoundError('Unknown audio backend')
         self.bk.init()  # TODO: init until success
+        self.display_info()
         self.volume = self.config['volume']
         self.speed = self.config['speed']
         if self.volume > 1.0:
@@ -295,6 +296,13 @@ class App:
             self.default_track_id = self.full_list.index(self.temp_list[-1]) + 1
         if self.config['temp_playlist_mode'] == 'random_pick':  # Trick
             random.shuffle(self.temp_list)
+
+    def display_info(self) -> None:
+        log.info('Welcome to the Pixelsuft MUST!')
+        log.info('Found Drivers:', ', '.join(self.bk.get_audio_drivers()))
+        log.info('Current Driver:', self.bk.get_current_audio_driver())
+        log.info('Found Devices:', ', '.join(self.bk.get_audio_devices_names()))
+        log.info('Current Device:', self.bk.get_current_audio_device_name())
 
     def cleanup(self) -> None:
         if self.server:
