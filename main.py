@@ -7,7 +7,7 @@ import random
 import ctypes
 import log
 import com_base
-import com_socket
+import com_tcp
 import com_udp
 import backend_base
 import backend_sdl2
@@ -46,7 +46,7 @@ class App:
             if '--client-only' in self.argv or (self.config['need_server_arg'] and '--server-only' not in self.argv):
                 raise RuntimeError('Client Only!')
             if self.config['com_type'] == 'tcp':
-                self.server: com_base.BaseServer = com_socket.SocketServer(self)
+                self.server: com_base.BaseServer = com_tcp.TCPServer(self)
             elif self.config['com_type'] == 'udp':
                 self.server: com_base.BaseServer = com_udp.UDPServer(self)
             else:
@@ -55,7 +55,7 @@ class App:
             if '--server-only' in self.argv:
                 raise RuntimeError('Server Only!')
             if self.config['com_type'] == 'tcp':
-                self.client: com_base.BaseClient = com_socket.SocketClient(self)
+                self.client: com_base.BaseClient = com_tcp.TCPClient(self)
             elif self.config['com_type'] == 'udp':
                 self.client: com_base.BaseClient = com_udp.UDPClient(self)
             else:
@@ -119,7 +119,7 @@ class App:
         self.next_is_switch_to_main = False
         try:
             self.main_loop()
-            self.should_kill = not sys.platform == 'win32' and self.server.should_kill
+            self.should_kill = self.server.should_kill
         except KeyboardInterrupt:
             self.should_kill = self.server.should_kill
         self.cleanup()

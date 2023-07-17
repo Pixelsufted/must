@@ -1,3 +1,4 @@
+import sys
 import socket
 import threading
 import com_base
@@ -6,7 +7,7 @@ import com_base
 class UDPServer(com_base.BaseServer):
     def __init__(self, app: any) -> None:
         super().__init__()
-        self.should_kill = True
+        self.should_kill = not sys.platform == 'win32'
         self.app = app
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:

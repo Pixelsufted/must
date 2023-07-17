@@ -1,12 +1,13 @@
+import sys
 import socket
 import threading
 import com_base
 
 
-class SocketServer(com_base.BaseServer):
+class TCPServer(com_base.BaseServer):
     def __init__(self, app: any) -> None:
         super().__init__()
-        self.should_kill = True
+        self.should_kill = not sys.platform == 'win32'
         self.app = app
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -69,7 +70,7 @@ class SocketServer(com_base.BaseServer):
         self.app = None
 
 
-class SocketClient(com_base.BaseClient):
+class TCPClient(com_base.BaseClient):
     def __init__(self, app: any) -> None:
         super().__init__(app)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
