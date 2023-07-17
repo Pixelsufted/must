@@ -241,6 +241,7 @@ class SDL2Music(backend_base.BaseMusic):
 class SDL2Backend(backend_base.BaseBackend):
     def __init__(self, app: any, libs: dict) -> None:
         super().__init__()
+        self.title = 'SDL2_mixer'
         self.app = app
         self.sdl = SDL2Wrapper(libs.get('SDL2'), app.is_le)
         self.mix = SDL2MixWrapper(libs.get('SDL2_mixer'))

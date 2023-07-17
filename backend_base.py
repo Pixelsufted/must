@@ -59,7 +59,7 @@ class BaseMusic:
 
 class BaseBackend:
     def __init__(self) -> None:
-        pass
+        self.title = 'Base'
 
     def init(self) -> None:
         pass

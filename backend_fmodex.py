@@ -547,6 +547,7 @@ class FmodExMusic(backend_base.BaseMusic):
 class FmodExBackend(backend_base.BaseBackend):
     def __init__(self, app: any, libs: dict) -> None:
         super().__init__()
+        self.title = 'FmodEx'
         self.app = app
         self.header_version = eval(app.config['fmod_version'])
         self.sys = ctypes.c_void_p()
