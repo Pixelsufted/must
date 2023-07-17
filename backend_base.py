@@ -87,3 +87,6 @@ class BaseBackend:
 
     def update(self) -> None:
         pass
+
+    def rewind(self) -> None:
+        pass

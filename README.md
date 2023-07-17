@@ -2,6 +2,7 @@
 Simple Terminal Music Player (Server/Client), written in python <br />
 I made it mostly for myself because there is no foobar2000 on linux
 ## Supported Audio Backends
+ - Windows MultiMedia Library
  - SDL2/SDL2_mixer
  - FmodEx
 ## Supported Communication Backends

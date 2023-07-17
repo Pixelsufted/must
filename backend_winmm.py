@@ -36,6 +36,18 @@ class WinMMMusic(backend_base.BaseMusic):
     def set_volume(self, volume: float = 1.0) -> None:
         self.bk.send_warn(f'setaudio {self.al} volume to {round(volume * 1000)}', 'Failed to set music volume')
 
+    def set_speed(self, volume: float = 1.0) -> None:
+        self.bk.send_warn(f'set {self.al} speed {round(volume * 1000)}', 'Failed to set music speed')
+
+    def set_paused(self, paused: bool) -> None:
+        if paused == self.paused:
+            return
+        self.paused = paused
+        self.bk.send_warn(('pause ' if paused else 'resume ') + self.al, 'Failed to set music paused')
+
+    def rewind(self) -> None:
+        self.set_pos(0.0)
+
     def destroy(self) -> None:
         self.bk.send_warn(f'close {self.al}', 'Failed to close music')
         self.bk = None

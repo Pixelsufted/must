@@ -243,6 +243,9 @@ class App:
                 elif cmd == 'show_pos':
                     if self.current_music:
                         log.info(f'Music Position: {self.format_time(self.current_music.get_pos())}')
+                elif cmd == 'rewind':
+                    if self.current_music:
+                        self.current_music.rewind()
                 elif cmd.startswith('pos_sec'):
                     if not self.current_music:
                         continue
