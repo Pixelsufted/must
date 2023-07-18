@@ -37,3 +37,39 @@ python main.py  # Enter Prompt Mode
 >>> disconnect  # Just Disconnect
 python main.py exit  # Terminate
 ```
+## Example Waybar Configuration
+Note: disable logging and enable json print in config
+```json
+"custom/media": {
+    "format": "{}",
+    "return-type": "json",
+    "max-length": 100,
+    "escape": true,
+    "exec": "python /home/lexa/Documents/must/main.py --server-only 2> /dev/null"
+}
+```
+
+## Example DWL Binds
+```c
+/* commands */
+static const char *next_player_cmd[] = { "python", "/home/lexa/Documents/must/main.py", "--client-only", "next", NULL };
+static const char *pause_player_cmd[] = { "python", "/home/lexa/Documents/must/main.py", "--client-only", "toggle_pause", NULL };
+static const char *vol_add_cmd[] = { "python", "/home/lexa/Documents/must/main.py", "--client-only", "volume_ch 0.05", NULL };
+static const char *vol_sub_cmd[] = { "python", "/home/lexa/Documents/must/main.py", "--client-only", "volume_ch -0.05", NULL };
+static const char *pos_add_cmd[] = { "python", "/home/lexa/Documents/must/main.py", "--client-only", "pos_sec_ch 10", NULL };
+static const char *pos_sub_cmd[] = { "python", "/home/lexa/Documents/must/main.py", "--client-only", "pos_sec_ch -10", NULL };
+static const char *rewind_cmd[] = { "python", "/home/lexa/Documents/must/main.py", "--client-only", "rewind", NULL };
+
+static const Key keys[] = {
+	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
+	/* modifier                  key                 function        argument */
+    /* ...  Other Keys ... */
+	{ 0,                         XKB_KEY_KP_Down,          spawn,          {.v = next_player_cmd} },
+	{ 0,                         XKB_KEY_KP_Begin,          spawn,          {.v = pause_player_cmd} },
+	{ 0,                         XKB_KEY_KP_End,          spawn,          {.v = pos_sub_cmd} },
+	{ 0,                         XKB_KEY_KP_Next,          spawn,          {.v = pos_add_cmd} },
+	{ 0,                         XKB_KEY_KP_Left,          spawn,          {.v = vol_sub_cmd} },
+	{ 0,                         XKB_KEY_KP_Right,          spawn,          {.v = vol_add_cmd} },
+	{ 0,                         XKB_KEY_KP_Up,          spawn,          {.v = rewind_cmd} }
+};
+```
