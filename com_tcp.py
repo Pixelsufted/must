@@ -50,11 +50,13 @@ class TCPServer(com_base.BaseServer):
                     continue
                 self.commands.append(msg)
                 conn.close()
-                self.clients.remove(conn)
+                if conn in self.clients:
+                    self.clients.remove(conn)
                 return
             if msg == 'disconnect':
                 conn.close()
-                self.clients.remove(conn)
+                if conn in self.clients:
+                    self.clients.remove(conn)
                 return
             self.commands.append(msg)
         # self.should_kill = False
