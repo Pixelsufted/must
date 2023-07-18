@@ -22,6 +22,7 @@ class BaseMusic:
     def __init__(self, fp: str) -> None:
         self.fp = fp
         self.fn = os.path.basename(fp)
+        self.fn_no_ext = os.path.splitext(self.fn)[0]
         self.type = 'none'
         self.paused = False
         self.freq = 0.0

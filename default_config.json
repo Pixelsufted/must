@@ -16,6 +16,7 @@
   "allow_ffmpeg": false,
   "allow_logging": true,
   "print_json": false,
+  "print_json_time": false,
   "pause_first": false,
   "force_try_init": false,
   "formats": ["wav", "mp3", "m4a", "ogg", "flac"],

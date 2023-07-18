@@ -133,10 +133,25 @@ class App:
             os.kill(os.getpid(), self.sig_kill)  # FIXME
 
     def track_loop(self) -> None:
+        if self.config['print_json'] and self.config['print_json_time']:
+            last_format = ''
+            len_format = self.format_time(self.current_music.length)
         while self.running and self.current_music and self.current_music.is_playing():
             self.server.update()
             self.poll_commands()
             self.bk.update()
+            if self.config['print_json'] and self.config['print_json_time']:
+                cur_format = self.format_time(self.current_music.get_pos())
+                if not cur_format == last_format:  # noqa
+                    last_format = cur_format
+                    output = {
+                        'text': '[' + cur_format + '/' + len_format + '] ' +  # noqa
+                                self.current_music.fn_no_ext,
+                        'class': 'custom-mediaplayer',
+                        'alt': 'mediaplayer'
+                    }
+                    sys.stdout.write(json.dumps(output) + '\n')
+                    sys.stdout.flush()
 
     def next_track(self) -> any:
         # TODO: maybe allow to change mode in real time?
@@ -184,7 +199,7 @@ class App:
                 mus.set_paused(True)
                 pause_first = False
             stat = os.stat(mus.fp)
-            info = f'{os.path.splitext(mus.fn)[0]}'
+            info = mus.fn_no_ext
             if mus.length:
                 info += f' [{self.format_time(mus.length)}]'
             if mus.freq:
@@ -194,9 +209,9 @@ class App:
             if stat.st_mtime:
                 info += f' [{str(datetime.datetime.fromtimestamp(int(stat.st_mtime)))}]'
             log.info(info)
-            if self.config['print_json']:
+            if self.config['print_json'] and not self.config['print_json_time']:
                 output = {
-                    'text': f'{os.path.splitext(mus.fn)[0]}',
+                    'text': mus.fn_no_ext,
                     'class': 'custom-mediaplayer',
                     'alt': 'mediaplayer'
                 }
