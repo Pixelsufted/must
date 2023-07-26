@@ -118,7 +118,9 @@ class App:
                 self.full_list.append(os.path.join(self.config['music_path'], fn))
         self.full_list_group = {}
         for track_fp in self.full_list:
-            music_group = os.path.basename(track_fp).split(' - ')[0].strip()
+            music_group = os.path.basename(
+                track_fp
+            ).split(' - ')[0].lower().replace(' ', '').strip()
             if music_group in self.full_list_group:
                 self.full_list_group[music_group].append(track_fp)
             else:
