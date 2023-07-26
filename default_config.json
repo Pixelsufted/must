@@ -21,6 +21,6 @@
   "force_try_init": false,
   "formats": ["wav", "mp3", "m4a", "ogg", "flac"],
   "music_path": "e:/music",
-  "main_playlist_mode": "full_random",
+  "main_playlist_mode": "random_full",
   "temp_playlist_mode": "default_pick"
 }

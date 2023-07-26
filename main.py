@@ -116,6 +116,13 @@ class App:
                 if ext not in self.config['formats']:
                     continue
                 self.full_list.append(os.path.join(self.config['music_path'], fn))
+        self.full_list_group = {}
+        for track_fp in self.full_list:
+            music_group = os.path.basename(track_fp).split(' - ')[0].strip()
+            if music_group in self.full_list_group:
+                self.full_list_group[music_group].append(track_fp)
+            else:
+                self.full_list_group[music_group] = [track_fp]
         self.current_music: base_backend.BaseMusic = None # noqa
         self.running = True
         self.default_track_id = -1
@@ -175,8 +182,15 @@ class App:
                 return self.bk.open_music(fp)
             except RuntimeError:
                 return None
-        elif self.config['main_playlist_mode'] == 'full_random':
+        elif self.config['main_playlist_mode'] == 'random_full':
             fp = random.choice(self.full_list)
+            try:
+                return self.bk.open_music(fp)
+            except RuntimeError:
+                return None
+        elif self.config['main_playlist_mode'] == 'random_group':
+            group_tracks = random.choice(tuple(self.full_list_group.values()))
+            fp = random.choice(group_tracks)
             try:
                 return self.bk.open_music(fp)
             except RuntimeError:
