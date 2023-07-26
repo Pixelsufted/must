@@ -123,6 +123,8 @@ class App:
                 self.full_list_group[music_group].append(track_fp)
             else:
                 self.full_list_group[music_group] = [track_fp]
+        if self.config['main_playlist_mode'] == 'random_pick':
+            random.shuffle(self.full_list)
         self.current_music: base_backend.BaseMusic = None # noqa
         self.running = True
         self.default_track_id = -1
@@ -173,9 +175,11 @@ class App:
         if self.next_is_switch_to_main:
             self.next_is_switch_to_main = False
             log.info('Switched back to main list')
-        if self.config['main_playlist_mode'] == 'default':
+        if self.config['main_playlist_mode'] in ('default', 'random_pick'):
             self.default_track_id += 1
             if self.default_track_id >= len(self.full_list):
+                if self.config['main_playlist_mode'] == 'random_pick':
+                    random.shuffle(self.full_list)
                 self.default_track_id = 0
             fp = self.full_list[self.default_track_id]
             try:
