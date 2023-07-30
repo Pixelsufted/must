@@ -105,20 +105,12 @@ class App:
             raise RuntimeError(f'Volume {self.volume} is bigger than 1.0')
         self.full_list = []
         self.temp_list = []
-        for arg in self.argv:
-            ext = arg.split('.')[-1].lower()
-            if ext not in self.config['formats']:
-                continue
-            self.full_list.append(arg)
-        if not self.full_list and self.config['music_path']:
-            for fn in os.listdir(self.config['music_path']):
-                ext = fn.split('.')[-1].lower()
-                if ext not in self.config['formats']:
-                    continue
-                self.full_list.append(os.path.join(self.config['music_path'], fn))
         self.full_list_group = {}
+<<<<<<< HEAD
+        self.rescan()
+=======
         for track_fp in self.full_list:
-            music_group = os.path.basename(
+            os.path.basename(
                 track_fp
             ).split(' - ')[0].lower().replace(' ', '').strip()
             if music_group in self.full_list_group:
@@ -127,6 +119,7 @@ class App:
                 self.full_list_group[music_group] = [track_fp]
         if self.config['main_playlist_mode'] == 'random_pick':
             random.shuffle(self.full_list)
+>>>>>>> refs/remotes/origin/main
         self.current_music: base_backend.BaseMusic = None # noqa
         self.running = True
         self.default_track_id = -1
@@ -142,6 +135,30 @@ class App:
         self.exit_code = 0
         if self.should_kill:
             os.kill(os.getpid(), self.sig_kill)  # FIXME
+    
+    def rescan(self) -> None:
+        self.full_list.clear()
+        self.full_list_group.clear()
+        for arg in self.argv:
+            ext = arg.split('.')[-1].lower()
+            if ext not in self.config['formats']:
+                continue
+            self.full_list.append(arg)
+        if not self.full_list and self.config['music_path']:
+            for fn in os.listdir(self.config['music_path']):
+                ext = fn.split('.')[-1].lower()
+                if ext not in self.config['formats']:
+                    continue
+                self.full_list.append(os.path.join(self.config['music_path'], fn))
+        for track_fp in self.full_list:
+            music_group = os.path.basename(track_fp).split(' - ')[0].strip()
+            if music_group in self.full_list_group:
+                self.full_list_group[music_group].append(track_fp)
+            else:
+                self.full_list_group[music_group] = [track_fp]
+        if self.config['main_playlist_mode'] == 'random_pick':
+            random.shuffle(self.full_list)
+        log.info('Music scan results:', len(self.full_list), 'tracks in the full list')
 
     def track_loop(self) -> None:
         if self.config['print_json'] and self.config['print_json_time']:
@@ -337,6 +354,8 @@ class App:
                     if self.current_music:
                         self.current_music.set_speed(self.speed)
                     log.info('New Speed:', self.speed)
+                elif cmd == 'rescan':
+                    self.rescan()
                 elif cmd == 'exit' or cmd == 'quit':
                     self.running = False
                 else:
