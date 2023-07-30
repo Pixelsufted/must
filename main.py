@@ -106,20 +106,7 @@ class App:
         self.full_list = []
         self.temp_list = []
         self.full_list_group = {}
-<<<<<<< HEAD
         self.rescan()
-=======
-        for track_fp in self.full_list:
-            os.path.basename(
-                track_fp
-            ).split(' - ')[0].lower().replace(' ', '').strip()
-            if music_group in self.full_list_group:
-                self.full_list_group[music_group].append(track_fp)
-            else:
-                self.full_list_group[music_group] = [track_fp]
-        if self.config['main_playlist_mode'] == 'random_pick':
-            random.shuffle(self.full_list)
->>>>>>> refs/remotes/origin/main
         self.current_music: base_backend.BaseMusic = None # noqa
         self.running = True
         self.default_track_id = -1
