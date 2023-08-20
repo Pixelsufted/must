@@ -209,8 +209,9 @@ class App:
 
     @staticmethod
     def format_time(need_time: float) -> str:
-        sec_str = str(round(need_time) % 60)
-        return str(int(need_time / 60)) + ':' + ('0' if len(sec_str) <= 1 else '') + sec_str
+        round_time = round(need_time)
+        sec_str = str(round(round_time) % 60)
+        return str(int(round_time / 60)) + ':' + ('0' if len(sec_str) <= 1 else '') + sec_str
 
     def main_loop(self) -> None:
         pause_first = self.config['pause_first']
