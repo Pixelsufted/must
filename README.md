@@ -9,12 +9,12 @@ I made it mostly for myself because there is no foobar2000 on linux
  - TCP Sockets via threading.Thread
  - UDP Sockets (Single-Threaded) via threading.Thread
 ## How does it work?
-It has simple structure, so you can easily modify the code for your need,
-for example, I've added [Waybar](https://github.com/Alexays/Waybar) support in the code via `print_json` var in config. <br />
+It has simple structure, so you can easily modify the code for your need.
+For example, I added [Waybar](https://github.com/Alexays/Waybar) support in the code via `print_json` var in config. <br />
 By default, it tries to run itself as a server.
 If it fails, it tries to connect as a client. <br />
 It has two playlists: main and temp.
-It picks tracks from temp playlist until it has them, then it will play main playlist
+It picks tracks from temp playlist until it has them, then it will play main playlist.
 Main playlist should be specified by `music_path` var in config or via cmdline args (for ease of use with file managers). <br />
 Client can send commands to the server (currently can't receive).
 You can run client with cmdline args to send and without, to enter command prompt mode.
