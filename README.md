@@ -61,7 +61,6 @@ static const char *pos_sub_cmd[] = { "python", "/home/lexa/Documents/must/main.p
 static const char *rewind_cmd[] = { "python", "/home/lexa/Documents/must/main.py", "--client-only", "rewind", NULL };
 
 static const Key keys[] = {
-	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
 	/* modifier                  key                 function        argument */
     /* ...  Other Keys ... */
 	{ 0,                         XKB_KEY_KP_Down,          spawn,          {.v = next_player_cmd} },
@@ -71,5 +70,17 @@ static const Key keys[] = {
 	{ 0,                         XKB_KEY_KP_Left,          spawn,          {.v = vol_sub_cmd} },
 	{ 0,                         XKB_KEY_KP_Right,          spawn,          {.v = vol_add_cmd} },
 	{ 0,                         XKB_KEY_KP_Up,          spawn,          {.v = rewind_cmd} }
+};
+```
+
+## Example Someblocks Configuration
+Note: enable someblocks_support in config and set current_music_info_path to /dev/shm/must_music_info
+
+```c
+// Singal 10 is hardcoded in main.py
+static const Block blocks[] = {
+	/*Icon*/	/*Command*/		/*Update Interval*/	/*Update Signal*/	
+	{"", "cat /dev/shm/must_music_info",					0,		10},
+	{"", "date '+%b %d (%a) %I:%M%p'",					5,		0},
 };
 ```
