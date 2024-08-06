@@ -15,6 +15,8 @@
   "speed": 1.0,
   "allow_ffmpeg": false,
   "allow_logging": true,
+  "someblocks_support": false,
+  "current_music_info_path": "",
   "print_json": false,
   "print_json_time": false,
   "pause_first": false,

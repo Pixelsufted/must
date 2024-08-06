@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 import time
 import datetime
 import json
@@ -70,6 +71,14 @@ class App:
             self.client.destroy()
             # self.exit_code = 0
             return
+        self.someblocks_pid = 0
+        if self.config['someblocks_support']:
+            output = subprocess.check_output(['pidof', 'someblocks'], encoding=self.encoding).split(
+                '\n'
+            )[0].strip().split(' ')[0]
+            if not output.isdigit():
+                raise RuntimeError('Failed to find someblocks pid')
+            self.someblocks_pid = int(output.strip())
         if self.config['audio_backend'] == 'sdl2':
             self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
             self.bk: backend_base.BaseBackend = backend_sdl2.SDL2Backend(
@@ -242,6 +251,12 @@ class App:
                 }
                 sys.stdout.write(json.dumps(output) + '\n')
                 sys.stdout.flush()
+            if self.config['current_music_info_path']:
+                f = open(self.config['current_music_info_path'], 'w', encoding=self.encoding)
+                f.write(mus.fn_no_ext)
+                f.close()
+            if self.someblocks_pid:
+                os.kill(self.someblocks_pid, 34 + 10)
             self.track_loop()
 
     def play_new_music(self, mus: backend_base.BaseMusic) -> None:
