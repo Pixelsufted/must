@@ -12,6 +12,8 @@ x11.XStoreName.argtypes = (ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)
 x11.XStoreName.restype = None
 x11.XCloseDisplay.argtypes = (ctypes.c_void_p, )
 x11.XCloseDisplay.restype = None
+x11.XFlush.argtypes = (ctypes.c_void_p, )
+x11.XFlush.restype = None
 
 
 dpy = None
@@ -28,6 +30,7 @@ def init() -> None:
 
 def set_status(text: str) -> None:
     x11.XStoreName(dpy, root, text.encode('utf-8'))
+    x11.XFlush(dpy)
 
 
 def destroy() -> None:
