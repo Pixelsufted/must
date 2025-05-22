@@ -185,7 +185,7 @@ class App:
     
     @staticmethod
     def error_opening_mus(fp: str, err: RuntimeError) -> None:
-        log.warn(f'Failed to open music "{fp}" ({err})')
+        log.warn(f'Failed to open music "{fp}": {err}')
 
     def next_track(self) -> any:
         # TODO: maybe allow to change mode in real time?
