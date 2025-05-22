@@ -4,6 +4,7 @@ I made it mostly for myself because there is no foobar2000 on linux
 ## Supported Audio Backends
  - Windows MultiMedia Library
  - SDL2/SDL2_mixer
+ - SDL3/SDL3_mixer
  - FmodEx
 ## Supported Communication Backends
  - TCP Sockets via threading.Thread

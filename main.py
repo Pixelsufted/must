@@ -109,7 +109,7 @@ class App:
                 except RuntimeError as _err:
                     if i == 19:
                         raise _err
-                    time.sleep(0.25)
+                    time.sleep(1)
                     continue
         else:
             self.bk.init()
