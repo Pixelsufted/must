@@ -587,9 +587,12 @@ class FmodExBackend(backend_base.BaseBackend):
             self.sys, 1, self.fmod.FMOD_INIT_THREAD_UNSAFE, None
         ), 'Failed to init system')
         if self.app.config['audio_driver']:
-            self.check_result_err(self.fmod.FMOD_System_SetOutput(
-                self.sys, self.fmod.output_map.get(self.app.config['audio_driver'])
-            ), 'Failed to set audio driver')
+            if self.fmod.output_map.get(self.app.config['audio_driver']):
+                self.check_result_err(self.fmod.FMOD_System_SetOutput(
+                    self.sys, self.fmod.output_map.get(self.app.config['audio_driver'])
+                ), 'Failed to set audio driver')
+            else:
+                log.warn(self.app.config['audio_driver'], 'driver not in ', self.fmod.output_map)
         num_buf = ctypes.c_int(10)
         self.check_result_warn(
             self.fmod.FMOD_System_GetNumDrivers(self.sys, num_buf), 'Failed to get audio devices number'
