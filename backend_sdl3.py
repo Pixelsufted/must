@@ -42,7 +42,6 @@ class SDL3Wrapper(backend_base.BaseWrapper):
         self.SDL_GetError = self.wrap('SDL_GetError', res=ctypes.c_char_p)
         self.SDL_GetRevision = self.wrap('SDL_GetRevision', res=ctypes.c_char_p)
         self.SDL_free = self.wrap('SDL_free', args=(ctypes.c_void_p, ))
-        self.SDL_GetTicks = self.wrap('SDL_GetTicks', res=ctypes.c_uint64)
         self.SDL_GetNumAudioDrivers = self.wrap('SDL_GetNumAudioDrivers', res=ctypes.c_int)
         self.SDL_GetAudioDriver = self.wrap('SDL_GetAudioDriver', args=(ctypes.c_int, ), res=ctypes.c_char_p)
         self.SDL_GetCurrentAudioDriver = self.wrap('SDL_GetCurrentAudioDriver', res=ctypes.c_char_p)
@@ -98,7 +97,7 @@ class SDL3MixWrapper(backend_base.BaseWrapper):
             self.MUS_WAV_PACK: 'wav_pack',
             self.MUS_GME: 'gme'
         }
-        self.Mix_Init = self.wrap('Mix_Init', args=(ctypes.c_int, ), res=ctypes.c_bool)
+        self.Mix_Init = self.wrap('Mix_Init', args=(ctypes.c_int, ), res=ctypes.c_int)
         self.Mix_Quit = self.wrap('Mix_Quit')
         self.Mix_OpenAudio = self.wrap('Mix_OpenAudio', args=(
             ctypes.c_uint32, ctypes.c_void_p
@@ -111,21 +110,21 @@ class SDL3MixWrapper(backend_base.BaseWrapper):
         self.Mix_LoadMUS = self.wrap('Mix_LoadMUS', args=(ctypes.c_char_p, ), res=ctypes.c_void_p)
         self.Mix_FreeMusic = self.wrap('Mix_FreeMusic', args=(ctypes.c_void_p, ))
         self.Mix_GetMusicType = self.wrap('Mix_GetMusicType', args=(ctypes.c_void_p, ), res=ctypes.c_int)
-        self.Mix_PlayMusic = self.wrap('Mix_PlayMusic', args=(ctypes.c_void_p, ctypes.c_int), res=ctypes.c_int)
+        self.Mix_PlayMusic = self.wrap('Mix_PlayMusic', args=(ctypes.c_void_p, ctypes.c_int), res=ctypes.c_bool)
         self.Mix_FadeInMusic = self.wrap('Mix_FadeInMusic', args=(
             ctypes.c_void_p, ctypes.c_int, ctypes.c_int
-        ), res=ctypes.c_int)
+        ), res=ctypes.c_bool)
         self.Mix_FadeInMusicPos = self.wrap('Mix_FadeInMusicPos', args=(
             ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_double
-        ), res=ctypes.c_int)
-        self.Mix_FadeOutMusic = self.wrap('Mix_FadeOutMusic', args=(ctypes.c_int, ), res=ctypes.c_int)
-        self.Mix_SetMusicPosition = self.wrap('Mix_SetMusicPosition', args=(ctypes.c_double, ), res=ctypes.c_int)
+        ), res=ctypes.c_bool)
+        self.Mix_FadeOutMusic = self.wrap('Mix_FadeOutMusic', args=(ctypes.c_int, ), res=ctypes.c_bool)
+        self.Mix_SetMusicPosition = self.wrap('Mix_SetMusicPosition', args=(ctypes.c_double, ), res=ctypes.c_bool)
         self.Mix_GetMusicPosition = self.wrap('Mix_GetMusicPosition', args=(ctypes.c_void_p, ), res=ctypes.c_double)
         self.Mix_MusicDuration = self.wrap('Mix_MusicDuration', args=(ctypes.c_void_p, ), res=ctypes.c_double)
-        self.Mix_PlayingMusic = self.wrap('Mix_PlayingMusic', res=ctypes.c_int)
-        self.Mix_PausedMusic = self.wrap('Mix_PausedMusic', res=ctypes.c_int)
-        self.Mix_FadingMusic = self.wrap('Mix_FadingMusic', res=ctypes.c_int)
-        self.Mix_HaltMusic = self.wrap('Mix_HaltMusic', res=ctypes.c_int)
+        self.Mix_PlayingMusic = self.wrap('Mix_PlayingMusic', res=ctypes.c_bool)
+        self.Mix_PausedMusic = self.wrap('Mix_PausedMusic', res=ctypes.c_bool)
+        self.Mix_FadingMusic = self.wrap('Mix_FadingMusic', res=ctypes.c_bool)
+        self.Mix_HaltMusic = self.wrap('Mix_HaltMusic', res=ctypes.c_void_p)
         self.Mix_VolumeMusic = self.wrap('Mix_VolumeMusic', args=(ctypes.c_void_p, ), res=ctypes.c_int)
         self.Mix_PauseMusic = self.wrap('Mix_PauseMusic')
         self.Mix_ResumeMusic = self.wrap('Mix_ResumeMusic')
@@ -158,22 +157,14 @@ class SDL3Music(backend_base.BaseMusic):
 
     def play(self) -> None:
         result = self.mix.Mix_PlayMusic(self.mus, 0)
-        if result < 0:
+        if not result:
             log.warn(f'Failed to play music ({self.app.bts(self.sdl.SDL_GetError())})')
-        elif not self.mix.Mix_GetMusicPosition:
-            self.play_time_start = self.sdl.SDL_GetTicks()
 
     def set_pos(self, pos: float) -> None:
-        if self.mix.Mix_SetMusicPosition(pos) < 0:
+        if not self.mix.Mix_SetMusicPosition(pos):
             log.warn(f'Failed to set music position ({self.app.bts(self.sdl.SDL_GetError())})')
-        elif not self.mix.Mix_GetMusicPosition:
-            self.play_time_start = self.sdl.SDL_GetTicks() - int(pos * 1000)
 
     def get_pos(self) -> float:
-        if not self.mix.Mix_GetMusicPosition:
-            if self.paused:
-                return (self.pause_time_start - self.play_time_start) / 1000
-            return (self.sdl.SDL_GetTicks() - self.play_time_start) / 1000
         pos = self.mix.Mix_GetMusicPosition(self.mus)
         if pos < 0:
             pos = 0.0
@@ -191,18 +182,11 @@ class SDL3Music(backend_base.BaseMusic):
             return
         (self.mix.Mix_PauseMusic if paused else self.mix.Mix_ResumeMusic)()
         self.paused = paused
-        if not self.mix.Mix_GetMusicPosition:
-            if paused:
-                self.pause_time_start = self.sdl.SDL_GetTicks()
-            else:
-                self.play_time_start += self.sdl.SDL_GetTicks() - self.pause_time_start
 
     def rewind(self) -> None:
         if not self.is_playing():
             return
         self.mix.Mix_RewindMusic()
-        if not self.mix.Mix_GetMusicPosition:
-            self.play_time_start = self.sdl.SDL_GetTicks()
 
     def set_volume(self, volume: float = 1.0) -> None:
         self.mix.Mix_VolumeMusic(int(volume * self.sdl.SDL_MIX_MAX_VOLUME))
@@ -226,11 +210,12 @@ class SDL3Backend(backend_base.BaseBackend):
         self.sdl = SDL3Wrapper(libs.get('SDL3'), app.is_le)
         self.mix = SDL3MixWrapper(libs.get('SDL3_mixer'))
         self.default_device_name = ''
+        self.dev_map = {}
 
     def init(self) -> None:
         if self.app.config['audio_driver']:
             os.putenv('SDL_AUDIODRIVER', self.app.config['audio_driver'])
-        if self.sdl.SDL_Init(self.sdl.SDL_INIT_AUDIO) < 0:
+        if not self.sdl.SDL_Init(self.sdl.SDL_INIT_AUDIO):
             raise RuntimeError(f'Failed to init SDL3 audio ({self.app.bts(self.sdl.SDL_GetError())})')
         mix_flags = 0
         if 'mp3' in self.app.config['formats']:
@@ -250,11 +235,14 @@ class SDL3Backend(backend_base.BaseBackend):
             raise RuntimeError(f'Failed to init SDL3_mixer ({self.app.bts(self.sdl.SDL_GetError())})')
         elif not mix_flags == mix_init_flags:
             log.warn(f'Failed to init some SDL3_mixer formats ({self.app.bts(self.sdl.SDL_GetError())})')
+        dev_id = 0
+        if self.app.config['device_name'] and self.app.config['device_name'] in self.get_audio_devices_names():
+            dev_id = self.dev_map[self.app.config['device_name']]
         result = self.mix.Mix_OpenAudio(
-            0,
-            None
-        )  # TODO
-        if result < 0:
+            dev_id,
+            None  # TODO
+        )
+        if not result:
             raise RuntimeError(f'Failed to open audio device ({self.app.bts(self.sdl.SDL_GetError())})')
         self.mix.Mix_AllocateChannels(0)
 
@@ -270,6 +258,7 @@ class SDL3Backend(backend_base.BaseBackend):
             if dev_name_bt is None:
                 log.warn(f'Failed to get audio device name with id {i} ({self.app.bts(self.sdl.SDL_GetError())})')
                 result.append('')
+            self.dev_map[self.app.bts(dev_name_bt)] = devs[i]
             result.append(self.app.bts(dev_name_bt))
         self.sdl.SDL_free(devs)
         return result

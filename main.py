@@ -182,6 +182,10 @@ class App:
                     }
                     sys.stdout.write(json.dumps(output) + '\n')
                     sys.stdout.flush()
+    
+    @staticmethod
+    def error_opening_mus(fp: str, err: RuntimeError) -> None:
+        log.warn(f'Failed to open music "{fp}" ({err})')
 
     def next_track(self) -> any:
         # TODO: maybe allow to change mode in real time?
@@ -192,7 +196,7 @@ class App:
             try:
                 return self.bk.open_music(fp)
             except RuntimeError as _err:
-                log.warn(f'Failed to open music:', _err)
+                self.error_opening_mus(fp, _err)
                 return None
         if self.next_is_switch_to_main:
             self.next_is_switch_to_main = False
@@ -207,14 +211,14 @@ class App:
             try:
                 return self.bk.open_music(fp)
             except RuntimeError as _err:
-                log.warn(f'Failed to open music:', _err)
+                self.error_opening_mus(fp, _err)
                 return None
         elif self.config['main_playlist_mode'] == 'random_full':
             fp = random.choice(self.full_list)
             try:
                 return self.bk.open_music(fp)
             except RuntimeError as _err:
-                log.warn(f'Failed to open music:', _err)
+                self.error_opening_mus(fp, _err)
                 return None
         elif self.config['main_playlist_mode'] == 'random_group':
             group_tracks = random.choice(tuple(self.full_list_group.values()))
@@ -222,7 +226,7 @@ class App:
             try:
                 return self.bk.open_music(fp)
             except RuntimeError as _err:
-                log.warn(f'Failed to open music:', _err)
+                self.error_opening_mus(fp, _err)
                 return None
         return None
 
