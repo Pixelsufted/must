@@ -564,7 +564,8 @@ class FmodExBackend(backend_base.BaseBackend):
                     break
         self.check_result_err(res, 'Failed to create system')
         ver_buf = ctypes.c_uint()
-        if self.fmod.FMOD_System_GetVersion(self.sys, ver_buf) == self.fmod.FMOD_OK \
+        # TODO: fix segfault
+        if 0 and self.fmod.FMOD_System_GetVersion(self.sys, ver_buf) == self.fmod.FMOD_OK \
                 and not ver_buf.value == self.header_version:
             log.warn(f'Incorrect FmodEx version configured. Please change it to {hex(ver_buf.value)} in config')
         freq_buf = ctypes.c_int(41000)
