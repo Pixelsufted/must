@@ -13,6 +13,7 @@ import com_udp
 import backend_base
 import backend_winmm
 import backend_sdl2
+import backend_sdl3
 import backend_fmodex
 
 
@@ -83,6 +84,11 @@ class App:
             self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
             self.bk: backend_base.BaseBackend = backend_sdl2.SDL2Backend(
                 self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix)
+            )
+        elif self.config['audio_backend'] == 'sdl3':
+            self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
+            self.bk: backend_base.BaseBackend = backend_sdl3.SDL3Backend(
+                self, self.search_libs('SDL3', 'SDL3_mixer', prefix=self.auto_prefix)
             )
         elif self.config['audio_backend'] == 'fmod':
             if sys.platform == 'win32':
@@ -185,7 +191,8 @@ class App:
                 self.next_is_switch_to_main = True
             try:
                 return self.bk.open_music(fp)
-            except RuntimeError:
+            except RuntimeError as _err:
+                log.warn(f'Failed to open music:', _err)
                 return None
         if self.next_is_switch_to_main:
             self.next_is_switch_to_main = False
@@ -199,20 +206,23 @@ class App:
             fp = self.full_list[self.default_track_id]
             try:
                 return self.bk.open_music(fp)
-            except RuntimeError:
+            except RuntimeError as _err:
+                log.warn(f'Failed to open music:', _err)
                 return None
         elif self.config['main_playlist_mode'] == 'random_full':
             fp = random.choice(self.full_list)
             try:
                 return self.bk.open_music(fp)
-            except RuntimeError:
+            except RuntimeError as _err:
+                log.warn(f'Failed to open music:', _err)
                 return None
         elif self.config['main_playlist_mode'] == 'random_group':
             group_tracks = random.choice(tuple(self.full_list_group.values()))
             fp = random.choice(group_tracks)
             try:
                 return self.bk.open_music(fp)
-            except RuntimeError:
+            except RuntimeError as _err:
+                log.warn(f'Failed to open music:', _err)
                 return None
         return None
 
