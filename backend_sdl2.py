@@ -244,7 +244,7 @@ class SDL2Backend(backend_base.BaseBackend):
         self.title = 'SDL2_mixer'
         self.app = app
         self.sdl = SDL2Wrapper(libs.get('SDL2'), app.is_le)
-        self.mix = SDL2MixWrapper(libs.get('SDL2_mixer'))
+        self.mix = SDL2MixWrapper(libs.get('SDL2_mixer') or libs.get('SDL2_mixer_ext'))
         self.default_device_name = ''
 
     def init(self) -> None:

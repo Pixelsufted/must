@@ -80,10 +80,11 @@ class App:
             if not output.isdigit():
                 raise RuntimeError('Failed to find someblocks pid')
             self.someblocks_pid = int(output.strip())
-        if self.config['audio_backend'] == 'sdl2':
+        if self.config['audio_backend'] in ('sdl2', 'sdl2_ext'):
             self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
+            use_ext = self.config['audio_backend'] == 'sdl2_ext'
             self.bk: backend_base.BaseBackend = backend_sdl2.SDL2Backend(
-                self, self.search_libs('SDL2', 'SDL2_mixer', prefix=self.auto_prefix)
+                self, self.search_libs('SDL2', 'SDL2_mixer_ext' if use_ext else 'SDL2_mixer', prefix=self.auto_prefix)
             )
         elif self.config['audio_backend'] == 'sdl3':
             self.search_libs('libopusfile-0', 'libopus-0', 'libogg-0', 'libmodplug-1')
